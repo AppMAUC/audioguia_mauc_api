@@ -125,7 +125,8 @@ const getUserById = async (req, res) => {
 
     try {
         const admin = await Admin.findById(new mongoose.Types.ObjectId(id)).select("-password");
-
+        
+        // Check if admin exists
         if (!admin) {
             res.status(404).json({ errors: ["Administrador não encontrado"] });
             return;
@@ -136,7 +137,6 @@ const getUserById = async (req, res) => {
         res.status(404).json({ errors: ["Administrador não encontrado"] });
         return;
     }
-    // Check if admin exists
 }
 
 module.exports = {
