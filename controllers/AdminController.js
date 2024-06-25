@@ -125,7 +125,7 @@ const getUserById = async (req, res) => {
 
     try {
         const admin = await Admin.findById(new mongoose.Types.ObjectId(id)).select("-password");
-        
+
         // Check if admin exists
         if (!admin) {
             res.status(404).json({ errors: ["Administrador não encontrado"] });
@@ -139,10 +139,17 @@ const getUserById = async (req, res) => {
     }
 }
 
+const getAllAdmins = async (req, res) => {
+    const admin = await Admin.find({}).sort([["date", -1]]).exec();
+
+    return res.status(200).json(admin);
+};
+
 module.exports = {
     register,
     login,
     getCurrentAdmin,
     update,
-    getUserById
+    getUserById,
+    getAllAdmins
 };

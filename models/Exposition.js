@@ -14,6 +14,6 @@ const ExpositionSchema = new Schema({
     }
 );
 
-const ArtWork = mongoose.model("Exposition", ExpositionSchema);
+const Exposition = mongoose.model("Exposition", ExpositionSchema);
 
-module.exports = ArtWork;
+module.exports = Exposition;

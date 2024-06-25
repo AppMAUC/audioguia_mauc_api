@@ -30,7 +30,7 @@ const adminCreateValidation = () => {
             .isInt()
             .withMessage("Adicione um nível de acesso válido")
             .custom((value) => {
-                const validAcess = [1, 2];
+                const validAcess = [1, 2, "1", "2"];
                 if (!validAcess.includes(value)) {
                     throw new Error("Escolha um nível de acesso válido")
                 };

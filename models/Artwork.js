@@ -6,12 +6,12 @@ const artWorkSchema = new Schema({
         title: String,
         partial_desc: String,
         complete_desc: String,
-        audio_desc: Audio,
+        audio_desc: String,
         author: String,
         colection: String,
         suport: String,
-        data: Date,
-        dimentions: String
+        date: Date,
+        dimension: String
     },
     {
         timestamps: true
