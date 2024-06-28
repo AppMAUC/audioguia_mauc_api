@@ -6,6 +6,7 @@ router.use("/api/expositions", require("./ExpositionRoutes"));
 router.use("/api/artworks", require("./ArtWorkRoutes"));
 router.use("/api/artists", require("./ArtistRoutes"));
 router.use("/api/events", require("./EventRoutes"));
+router.use("/api/timelines", require("./TimeLineRoutes"));
 
 router.get("/", (req, res) => {
     res.json({message: "API Working!"})

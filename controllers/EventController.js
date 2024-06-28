@@ -89,10 +89,28 @@ const getEventById = async (req, res) => {
 
         res.status(200).json(event);
     } catch (error) {
-        res.status(404).json({ errors: ["Event não encontrado"] });
+        res.status(404).json({ errors: ["Evento não encontrado"] });
         return;
     }
 };
+
+const getEventContent = async (events) => {
+
+    const eventsWithContent = [];
+
+    for (const id of events) {
+        const event = await Event.findById(new mongoose.Types.ObjectId(id));
+
+        if (!event) {
+            throw new Error("Evento não encontrado");
+        }
+
+        eventsWithContent.push(event);
+    }
+
+    return eventsWithContent;
+}
+
 
 const getAllEvents = async (req, res) => {
     const event = await Event.find({}).sort([["date", -1]]).exec();
@@ -111,5 +129,6 @@ module.exports = {
     updateEvent,
     getEventById,
     getAllEvents,
-    searchEvent
+    searchEvent,
+    getEventContent
 };
