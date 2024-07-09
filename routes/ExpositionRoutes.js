@@ -6,7 +6,7 @@ const router = express.Router();
 const { registerExposition, deleteExposition, updateExposition, getExpositionById, getAllExpostitions, searchExpositions } = require("../controllers/ExpositionController");
 
 //Middlewares
-const authGuard = require("../middlewares/authGuard");
+const { authGuard } = require("../middlewares/authGuard");
 const validate = require("../middlewares/handleValidation");
 const { expositionCreateValidation, expositionUpdateValidation } = require("../middlewares/expositionValidations");
 

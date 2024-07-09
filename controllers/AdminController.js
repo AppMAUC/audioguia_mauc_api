@@ -115,12 +115,14 @@ const update = async (req, res) => {
 
     await admin.save();
 
-    res.status(200).json(admin);
+    const adminResponse = { ...admin._doc };
+    delete adminResponse.password;
 
-};
+    res.status(200).json(adminResponse);
+}
 
 // Get admin by id
-const getUserById = async (req, res) => {
+const getAdminById = async (req, res) => {
     const { id } = req.params;
 
     try {
@@ -145,11 +147,16 @@ const getAllAdmins = async (req, res) => {
     return res.status(200).json(admin);
 };
 
+const tokenIsValid = async (req, res) => {
+    return res.status(200).json({ token: true });
+};
+
 module.exports = {
     register,
     login,
     getCurrentAdmin,
     update,
-    getUserById,
-    getAllAdmins
+    getAdminById,
+    getAllAdmins,
+    tokenIsValid
 };

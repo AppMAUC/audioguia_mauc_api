@@ -7,7 +7,7 @@ const { registerEvent, deleteEvent, updateEvent, getEventById, getAllEvents, sea
 // Middlewares
 const validate = require("../middlewares/handleValidation");
 const { eventCreateValidation, eventUpdateValidation } = require("../middlewares/eventValidations");
-const authGuard = require("../middlewares/authGuard")
+const { authGuard } = require("../middlewares/authGuard")
 const { imageUpload } = require("../middlewares/multerConfig")
 
 // Routes

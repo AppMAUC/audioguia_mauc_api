@@ -6,7 +6,7 @@ const router = express.Router();
 const { registerArtWork, deleteArtWork, updateArtWork, getArtWorkById, getAllArtWorks, searchArtWork } = require('../controllers/ArtworkController');
 
 //Middlewares
-const authGuard = require("../middlewares/authGuard");
+const { authGuard } = require("../middlewares/authGuard");
 const validate = require("../middlewares/handleValidation");
 const { artWorkCreateValidation, artWorkUpdateValidation } = require("../middlewares/artWorkValidations");
 const { combinedUpload } = require("../middlewares/multerConfig")

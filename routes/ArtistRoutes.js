@@ -9,7 +9,7 @@ const { registerArtist, deleteArtist, updateArtist, searchArtist, getAllArtists,
 // Middlewares
 const validate = require("../middlewares/handleValidation");
 const { artistCreateValidation, artistUpdateValidation } = require("../middlewares/artistValidations");
-const authGuard = require("../middlewares/authGuard")
+const { authGuard } = require("../middlewares/authGuard")
 const { combinedUpload } = require("../middlewares/multerConfig")
 
 // Routes

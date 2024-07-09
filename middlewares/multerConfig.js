@@ -1,6 +1,8 @@
 const multer = require("multer");
 const path = require("path");
 
+// Aplicar SOLID EVENTUALMENTE
+
 // Destination storage config
 
 const imageStorage = multer.diskStorage({
@@ -12,7 +14,7 @@ const imageStorage = multer.diskStorage({
         } else if (req.baseUrl.includes("photos")) {
             folder = "photos";
         } else if (req.baseUrl.includes("artworks")) {
-            folder = "artWork";
+            folder = "artworks";
         } else if (req.baseUrl.includes("events")) {
             folder = "events";
         };
@@ -45,7 +47,7 @@ const audioStorage = multer.diskStorage({
         } else if (req.baseUrl.includes("expositions")) {
             folder = "expositions";
         } else if (req.baseUrl.includes("artworks")) {
-            folder = "artWork";
+            folder = "artworks";
         } else if (req.baseUrl.includes("artists")) {
             folder = "artists";
         };
@@ -80,7 +82,7 @@ const combinedUpload  = multer({
                 } else if (req.baseUrl.includes("expositions")) {
                     folder = "expositions";
                 } else if (req.baseUrl.includes("artworks")) {
-                    folder = "artWork";
+                    folder = "artworks";
                 } else if (req.baseUrl.includes("artists")) {
                     folder = "artists";
                 };
@@ -94,7 +96,7 @@ const combinedUpload  = multer({
                 } else if (req.baseUrl.includes("expositions")) {
                     folder = "expositions";
                 } else if (req.baseUrl.includes("artworks")) {
-                    folder = "artWork";
+                    folder = "artworks";
                 } else if (req.baseUrl.includes("artists")) {
                     folder = "artists";
                 };

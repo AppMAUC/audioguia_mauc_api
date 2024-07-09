@@ -55,13 +55,13 @@ const loginValidation = () => {
 const adminUpdateValidation = () => {
     return [
         body("name")
-            .optional()
-            .isLength({min: 3})
-            .withMessage("O nome precisa ter no mínimo 3 caracteres"),
+            .isLength({ min: 3 })
+            .withMessage("O nome precisa ter no mínimo 3 caracteres")
+            .optional(),
         body("password")
-            .optional()
-            .isLength({min: 5})
+            .isLength({ min: 5 })
             .withMessage("A senha precisa ter no mínimo 5 caracteres")
+            .optional()
 
     ];
 };

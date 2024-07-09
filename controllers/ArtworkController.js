@@ -36,7 +36,6 @@ const registerArtWork = async (req, res) => {
 // Get all artWorks
 const getAllArtWorks = async (req, res) => {
     const artWorks = await ArtWork.find({}).sort([["date", -1]]).exec();
-
     return res.status(200).json(artWorks);
 };
 
@@ -60,9 +59,6 @@ const updateArtWork = async (req, res) => {
     };
     if (partial_desc) {
         artWork.partial_desc = partial_desc;
-    };
-    if (artWork) {
-        artWork.artWork = artWork;
     };
     if (complete_desc) {
         artWork.complete_desc = complete_desc;
@@ -142,7 +138,12 @@ const deleteArtWork = async (req, res) => {
 };
 const searchArtWork = async (req, res) => {
     const { q } = req.query;
-    const artWork = await ArtWork.find({ title: new RegExp(q, "i") }).exec();
+    const artWork = await ArtWork.find({
+        $or: [
+            { title: new RegExp(q, "i") }, // Busca por título com case-insensitive
+            { author: new RegExp(q, "i") } // Busca por autor
+        ]
+    }).exec();
     res.status(200).json(artWork);
 };
 

@@ -5,7 +5,7 @@ const router = express.Router();
 const { registerTimeLine, updateTimeLine, deleteTimeLine, searchTimeLine, getTimeLineById, getAllTimeLines, getTimeLineWithContent } = require('../controllers/TimeLineController');
 
 // Middlewares
-const authGuard = require("../middlewares/authGuard");
+const { authGuard } = require("../middlewares/authGuard");
 const validate = require("../middlewares/handleValidation");
 const { timeLineCreateValidation, timeLineUpdateValidation } = require("../middlewares/timeLineValidations");
 
