@@ -5,7 +5,7 @@ const ExpositionSchema = new Schema({
     title: String,
     description: String,
     artWork: Array,
-    livingRoom: String,
+    livingRoom: String, 
     dateStarts: Date,
     dateEnds: Date,
 },
