@@ -10,7 +10,11 @@ const eventCreateValidation = () => {
             .withMessage("A descrição é obrigatória"),
         body("date")
             .isDate()
-            .withMessage("A data do evento é obrigatória")
+            .withMessage("A data do evento é obrigatória"),
+        body("archived")
+            .optional()
+            .isBoolean()
+            .withMessage("O sistema deve saber o estado da obra"),
     ];
 };
 
@@ -27,7 +31,11 @@ const eventUpdateValidation = () => {
         body("date")
             .optional()
             .isDate()
-            .withMessage("A data do evento é obrigatória")
+            .withMessage("A data do evento é obrigatória"),
+        body("archived")
+            .optional()
+            .isBoolean()
+            .withMessage("O sistema deve saber o estado da obra"),
     ];
 };
 

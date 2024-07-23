@@ -1,25 +1,12 @@
 const multer = require("multer");
 const path = require("path");
-
-// Aplicar SOLID EVENTUALMENTE
+const { types } = require("../config/files");
+const { getPath, getFolder } = require('../utils/multer');
 
 // Destination storage config
-
-const imageStorage = multer.diskStorage({
+const mediaStorage = multer.diskStorage({
     destination: (req, file, cb) => { // config destination
-        let folder = "";
-
-        if (req.baseUrl.includes("admin")) {
-            folder = "admin";
-        } else if (req.baseUrl.includes("photos")) {
-            folder = "photos";
-        } else if (req.baseUrl.includes("artworks")) {
-            folder = "artworks";
-        } else if (req.baseUrl.includes("events")) {
-            folder = "events";
-        };
-
-        cb(null, `uploads/images/${folder}/`);
+        cb(null, `uploads/${getFolder(file.fieldname)}s/${getPath(req.baseUrl)}/`);
     },
     filename: (req, file, cb) => { // config filename
         cb(null, Date.now() + path.extname(file.originalname));
@@ -27,7 +14,7 @@ const imageStorage = multer.diskStorage({
 });
 
 const imageUpload = multer({
-    storage: imageStorage,
+    storage: mediaStorage,
     fileFilter(req, file, cb) {
         if (!file.originalname.match(/\.(png|jpg)$/)) {
             return cb(new Error("Por favor, envie apenas jpg ou png!"));
@@ -37,31 +24,8 @@ const imageUpload = multer({
 });
 
 
-// Configuração para áudios
-const audioStorage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        let folder = "";
-
-        if (req.baseUrl.includes("admin")) {
-            folder = "admin";
-        } else if (req.baseUrl.includes("expositions")) {
-            folder = "expositions";
-        } else if (req.baseUrl.includes("artworks")) {
-            folder = "artworks";
-        } else if (req.baseUrl.includes("artists")) {
-            folder = "artists";
-        };
-
-
-        cb(null, `uploads/audios/${folder}/`);
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + path.extname(file.originalname));
-    }
-});
-
 const audioUpload = multer({
-    storage: audioStorage,
+    storage: mediaStorage,
     fileFilter(req, file, cb) {
         if (!file.originalname.match(/\.(mp3|mp4)$/)) {
             return cb(new Error("Por favor, envie apenas mp3 ou mp4!"));
@@ -70,70 +34,37 @@ const audioUpload = multer({
     }
 });
 
-
-const combinedUpload  = multer({
+const combinedUpload = multer({
     storage: multer.diskStorage({
         destination: function (req, file, cb) {
-            if (file.fieldname === 'image') {
-                let folder = "";
-
-                if (req.baseUrl.includes("admin")) {
-                    folder = "admin";
-                } else if (req.baseUrl.includes("expositions")) {
-                    folder = "expositions";
-                } else if (req.baseUrl.includes("artworks")) {
-                    folder = "artworks";
-                } else if (req.baseUrl.includes("artists")) {
-                    folder = "artists";
-                };
-
-                cb(null, `uploads/images/${folder}/`);
-            } else if (file.fieldname === 'audio_desc') {
-                let folder = "";
-
-                if (req.baseUrl.includes("admin")) {
-                    folder = "admin";
-                } else if (req.baseUrl.includes("expositions")) {
-                    folder = "expositions";
-                } else if (req.baseUrl.includes("artworks")) {
-                    folder = "artworks";
-                } else if (req.baseUrl.includes("artists")) {
-                    folder = "artists";
-                };
-
-                cb(null, `uploads/audios/${folder}/`);
-            }
+            cb(null, `uploads/${getFolder(file.fieldname)}s/${getPath(req.baseUrl)}/`);
         },
         filename: function (req, file, cb) {
-            cb(null, Date.now() + path.extname(file.originalname));
+            let folder = getFolder(file.fieldname)
+            if (folder == 'audio') {
+                cb(null, Date.now() + file.originalname.match(/\-(br|en)/)[0] + path.extname(file.originalname));
+            } else {
+                cb(null, Date.now() + path.extname(file.originalname));
+            }
         }
     }),
     fileFilter(req, file, cb) {
-        // Verifique o tipo MIME do arquivo
-        if (file.mimetype.startsWith('image/')) {
-            // Aceite apenas imagens JPEG e PNG
-            if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
-                cb(null, true);
-            } else {
-                cb(new Error('Tipo de arquivo não suportado para imagem. Apenas JPEG e PNG são permitidos.'), false);
+
+        const folder = getFolder(file.fieldname);
+
+        for (let i = 0; i < types[folder].length; i++) {
+            if (!types[folder].includes(file.mimetype.split('/')[1])) {
+                return cb(new Error(`Tipo de arquivo não suportado`));
             }
-        } else if (file.mimetype.startsWith('audio/')) {
-            // Aceite apenas áudio MP3 e MP4
-            if (file.mimetype === 'audio/mpeg' || file.mimetype === 'audio/mp4') {
-                cb(null, true);
-            } else {
-                cb(new Error('Tipo de arquivo não suportado para áudio. Apenas MP3 e MP4 são permitidos.'), false);
-            }
-        } else {
-            cb(new Error('Tipo de arquivo não suportado. Apenas imagens e áudios são permitidos.'), false);
         }
+
+        cb(null, true);
+
     }
 }).fields([
     { name: 'image', maxCount: 1 },
-    { name: 'audio_desc', maxCount: 1 }
+    { name: 'audioDesc', maxCount: 3 }
 ]);
-
-
 
 
 module.exports = { imageUpload, audioUpload, combinedUpload };

@@ -10,12 +10,12 @@ const expositionCreateValidation = () => {
         body("description")
             .isString()
             .withMessage("A descrição é obrigatória."),
-        body("artWork")
+        body("artWorks")
             .isArray()
             .withMessage("Formato de dado inválido.")
-            .isLength({ min: 2 })
+            .isLength({ min: 1 })
             .withMessage("A exposição precisa ter mais de uma obra."),
-        body("livingRoom")
+        body("place")
             .isString()
             .withMessage("O local da exposição é obrigatório."),
         body("dateStarts")
@@ -23,7 +23,21 @@ const expositionCreateValidation = () => {
             .withMessage("Adicione uma data válida."),
         body("dateEnds")
             .isDate()
-            .withMessage("Adicione uma data válida.")
+            .withMessage("Adicione uma data válida."),
+        body("type")
+            .isInt()
+            .withMessage("Adicione um tipo válido")
+            .custom((value) => {
+                const validAcess = [1, 2, "1", "2"];
+                if (!validAcess.includes(value)) {
+                    throw new Error("Escolha um tipo válido")
+                };
+                return true;
+            }),
+        body("archived")
+            .optional()
+            .isBoolean()
+            .withMessage("O sistema deve saber o estado da obra"),
     ];
 };
 // Verificar se o Array terá problemas
@@ -40,13 +54,13 @@ const expositionUpdateValidation = () => {
             .optional()
             .isString()
             .withMessage("A descrição é obrigatória."),
-        body("artWork")
+        body("artWorks")
             .optional()
             .isArray()
             .withMessage("Formato de dado inválido.")
-            .isLength({ min: 2 })
+            .isLength({ min: 1 })
             .withMessage("A exposição precisa ter mais de uma obra."),
-        body("livingRoom")
+        body("place")
             .optional()
             .isString()
             .withMessage("O local da exposição é obrigatório."),
@@ -57,7 +71,22 @@ const expositionUpdateValidation = () => {
         body("dateEnds")
             .optional()
             .isDate()
-            .withMessage("Adicione uma data válida.")
+            .withMessage("Adicione uma data válida."),
+        body("type")
+            .optional()
+            .isInt()
+            .withMessage("Adicione um tipo válido")
+            .custom((value) => {
+                const validAcess = [1, 2, "1", "2"];
+                if (!validAcess.includes(value)) {
+                    throw new Error("Escolha um tipo válido")
+                };
+                return true;
+            }),
+        body("archived")
+            .optional()
+            .isBoolean()
+            .withMessage("O sistema deve saber o estado da obra"),
     ];
 };
 

@@ -1,23 +1,22 @@
 const Artist = require("../models/Artist");
 const mongoose = require("mongoose");
+const { getFileNames } = require('../utils/multer');
 
 const registerArtist = async (req, res) => {
 
-    const { name, description, birth_date, biography } = req.body;
+    const { name, description, birthDate, biography } = req.body;
 
-    const image = req.files && req.files['image'] ? req.files['image'][0].filename : req.file ? req.file : null;
-    const audio_desc = req.files && req.files['audio_desc'] ? req.files['audio_desc'][0].filename : req.file ? req.file : null;
-
+    const image = req.files && req.files['image'] ? req.files['image'][0].filename : req.file ? req.file.filename : null;
+    const audioDesc = req.files && req.files['audioDesc'] ? getFileNames(req.files['audioDesc']) : req.file ? req.file.filename : null;
 
     const newArtist = await Artist.create({
-        image,
         name,
         description,
-        birth_date,
         biography,
-        audio_desc
+        birthDate,
+        image,
+        audioDesc
     });
-
 
     if (!newArtist) {
         res.status(422).json({ errors: ["Houve um erro, por favor tente mais tarde"] });
@@ -66,12 +65,12 @@ const getAllArtists = async (req, res) => {
 
 
 const updateArtist = async (req, res) => {
-    const { name, description, birth_date, biography } = req.body;
+    const { name, description, birthDate, biography } = req.body;
     const { id } = req.params;
     const artist = await Artist.findById(new mongoose.Types.ObjectId(id));
 
-    const image = req.files && req.files['image'] ? req.files['image'][0].filename : req.file ? req.file : null;
-    const audio_desc = req.files && req.files['audio_desc'] ? req.files['audio_desc'][0].filename : req.file ? req.file : null;
+    const image = req.files && req.files['image'] ? req.files['image'][0].filename : req.file ? req.file.filename : null;
+    const audioDesc = req.files && req.files['audioDesc'] ? getFileNames(req.files['audioDesc']) : req.file ? req.file.filename : null;
 
 
     if (!artist) {
@@ -85,14 +84,14 @@ const updateArtist = async (req, res) => {
     if (description) {
         artist.description = description;
     };
-    if (birth_date) {
-        artist.birth_date = birth_date;
+    if (birthDate) {
+        artist.birthDate = birthDate;
     };
     if (biography) {
         artist.biography = biography;
     };
-    if (audio_desc) {
-        artist.audio_desc = audio_desc;
+    if (audioDesc) {
+        artist.audioDesc = audioDesc;
     };
     if (image) {
         artist.image = image;

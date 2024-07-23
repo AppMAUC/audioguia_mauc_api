@@ -1,19 +1,22 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-const ExpositionSchema = new Schema({
+const expositionSchema = new Schema({
     title: String,
+    type: Number,
+    image: String,
     description: String,
-    artWork: Array,
-    livingRoom: String, 
+    artWorks: Array,
+    place: String, 
     dateStarts: Date,
     dateEnds: Date,
+    archived: Boolean
 },
     {
         timestamps: true
     }
 );
 
-const Exposition = mongoose.model("Exposition", ExpositionSchema);
+const Exposition = mongoose.model("Exposition", expositionSchema);
 
 module.exports = Exposition;

@@ -6,12 +6,13 @@ const registerEvent = async (req, res) => {
     const { description, date, title } = req.body;
 
     const image = req.file ? req.file.filename : null;
-
+    const archived = false
     const newEvent = await Event.create({
         description,
         date,
         title,
-        image
+        image,
+        archived
     });
 
     if (!newEvent) {
@@ -47,7 +48,7 @@ const deleteEvent = async (req, res) => {
 };
 
 const updateEvent = async (req, res) => {
-    const { description, date, title } = req.body;
+    const { description, date, title, archived } = req.body;
     const { id } = req.params;
     const event = await Event.findById(new mongoose.Types.ObjectId(id));
 
@@ -69,6 +70,9 @@ const updateEvent = async (req, res) => {
     };
     if (image) {
         event.image = image;
+    };
+    if (archived) {
+        event.archived = archived;
     };
 
     await event.save();

@@ -4,16 +4,22 @@ const mongoose = require('mongoose');
 // Register Exposition
 const registerExposition = async (req, res) => {
 
-    const { title, description, artWork, livingRoom, dateStarts, dateEnds } = req.body;
+    const { title, description, type, artWorks, place, dateStarts, dateEnds } = req.body;
+
+    const image = req.files && req.files['image'] ? req.files['image'][0].filename : req.file ? req.file.filename : null;
+    const archived = false;
 
     // Create exposition
     const newExposition = await Exposition.create({
         title,
+        type,
+        image,
         description,
-        artWork,
-        livingRoom,
+        artWorks,
+        place,
         dateStarts,
-        dateEnds
+        dateEnds,
+        archived
     });
 
     // if exposition was created successfully, return the token
@@ -35,7 +41,7 @@ const getAllExpostitions = async (req, res) => {
 
 // Update an exposition
 const updateExposition = async (req, res) => {
-    const { title, description, artWork, livingRoom, dateStarts, dateEnds } = req.body;
+    const { title, description, artWorks, type, place, dateStarts, dateEnds, archived } = req.body;
     const { id } = req.params;
     const exposition = await Exposition.findById(new mongoose.Types.ObjectId(id));
 
@@ -45,20 +51,34 @@ const updateExposition = async (req, res) => {
         return;
     };
 
+    const image = req.files && req.files['image'] ? req.files['image'][0].filename : req.file ? req.file.filename : null;
+
     if (title) {
         exposition.title = title;
     };
     if (description) {
         exposition.description = description;
     };
-    if (artWork) {
-        exposition.artWork = artWork;
+    if (artWorks) {
+        exposition.artWorks = artWorks;
     };
-    if (livingRoom) {
-        exposition.livingRoom = livingRoom;
+    if (place) {
+        exposition.place = place;
+    };
+    if (dateEnds) {
+        exposition.dateEnds = dateEnds;
     };
     if (dateStarts) {
-        exposition.dateEnds = dateEnds;
+        exposition.dateStarts = dateStarts;
+    };
+    if (type) {
+        exposition.type = type;
+    };
+    if (image) {
+        exposition.image = image;
+    };
+    if (archived) {
+        exposition.archived = archived;
     };
 
     await exposition.save();
@@ -111,6 +131,7 @@ const deleteExposition = async (req, res) => {
         return;
     };
 };
+
 const searchExpositions = async (req, res) => {
     const { q } = req.query;
     const expositions = await Exposition.find({ title: new RegExp(q, "i") }).exec();

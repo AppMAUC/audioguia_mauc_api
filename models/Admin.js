@@ -5,8 +5,8 @@ const adminSchema = new Schema({
         name: String,
         email: String,
         password: String,
-        profileImage: String,
-        accessLevel: Number,
+        image: String,
+        accessLevel: String,
     },
     {
         timestamps: true

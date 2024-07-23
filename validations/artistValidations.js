@@ -8,7 +8,7 @@ const artistCreateValidation = () => {
         body("description")
             .isString()
             .withMessage("A descrição é obrigatória"),
-        body("birth_date")
+        body("birthDate")
             .isDate()
             .withMessage("A data de nascimento do artista é obrigatória"),
         body("biography")
@@ -27,7 +27,7 @@ const artistUpdateValidation = () => {
             .optional()
             .isString()
             .withMessage("A descrição é obrigatória"),
-        body("birth_date")
+        body("birthDate")
             .optional()
             .isDate()
             .withMessage("A data de nascimento do artista é obrigatória"),

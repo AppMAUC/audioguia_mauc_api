@@ -7,8 +7,8 @@ const { registerArtWork, deleteArtWork, updateArtWork, getArtWorkById, getAllArt
 
 //Middlewares
 const { authGuard } = require("../middlewares/authGuard");
-const validate = require("../middlewares/handleValidation");
-const { artWorkCreateValidation, artWorkUpdateValidation } = require("../middlewares/artWorkValidations");
+const validate = require("../validations/handleValidation");
+const { artWorkCreateValidation, artWorkUpdateValidation } = require("../validations/artWorkValidations");
 const { combinedUpload } = require("../middlewares/multerConfig")
 
 //Routes

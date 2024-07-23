@@ -7,10 +7,10 @@ const artWorkCreateValidation = () => {
             .withMessage("O título é obrigatório.")
             .isLength({ min: 3 })
             .withMessage("O título precisa ter no mínimo três caracteres."),
-        body("partial_desc")
+        body("partialDesc")
             .isString()
             .withMessage("A descrição curta é obrigatória."),
-        body("complete_desc")
+        body("completeDesc")
             .isString()
             .withMessage("A descrição completa é obrigatória."),
         body("author")
@@ -19,12 +19,16 @@ const artWorkCreateValidation = () => {
         body("suport")
             .isString()
             .withMessage("O suporte da obra é obrigatório"), // óleo sobre tela etc
-        body("date")
-            .isDate()
-            .withMessage("A data da obra é obrigatória"),// lembrar de colocar um checkbox para desconhecido - checkbox ativa desabled no campo mas preenche o json com "Autor Desconhecido ou Desconhecido"
+        body("year")
+            .isString()
+            .withMessage("O ano da obra é obrigatório"),
         body("dimension")
             .isString()
-            .withMessage("As dimensões da obra são onrigatórias"),  // 00 x 00    mm / cm / m
+            .withMessage("As dimensões da obra são obrigatórias"),  // 00 x 00    mm / cm / m
+        body("archived")
+            .optional()
+            .isBoolean()
+            .withMessage("O sistema deve saber o estado da obra"),
     ];
 };
 
@@ -34,11 +38,11 @@ const artWorkUpdateValidation = () => {
             .optional()
             .isLength({ min: 3 })
             .withMessage("O título precisa ter no mínimo três caracteres."),
-        body("partial_desc")
+        body("partialDesc")
             .optional()
             .isString()
             .withMessage("Formato inválido"),
-        body("complete_desc")
+        body("completeDesc")
             .optional()
             .isString()
             .withMessage("Formato inválido"),
@@ -50,7 +54,7 @@ const artWorkUpdateValidation = () => {
             .optional()
             .isString()
             .withMessage("Formato inválido"), // óleo sobre tela etc
-        body("date")
+        body("year")
             .optional()
             .isString()
             .withMessage("Formato inválido"),// lembrar de colocar um checkbox para desconhecido - checkbox ativa desabled no campo mas preenche o json com "Autor Desconhecido ou Desconhecido"
@@ -58,6 +62,10 @@ const artWorkUpdateValidation = () => {
             .optional()
             .isString()
             .withMessage("Formato inválido"),  // 00 x 00    mm / cm / m
+        body("archived")
+            .optional()
+            .isBoolean()
+            .withMessage("O sistema deve saber o estado da obra"),
     ];
 };
 

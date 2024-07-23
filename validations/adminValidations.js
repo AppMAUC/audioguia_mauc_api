@@ -1,6 +1,7 @@
 const { body } = require("express-validator");
 
 const adminCreateValidation = () => {
+
     return [
         body("name")
             .isString()
@@ -27,7 +28,7 @@ const adminCreateValidation = () => {
                 return true
             }),
         body("accessLevel")
-            .isInt()
+            .isString()
             .withMessage("Adicione um nível de acesso válido")
             .custom((value) => {
                 const validAcess = [1, 2, "1", "2"];

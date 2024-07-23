@@ -1,26 +1,27 @@
 const ArtWork = require('../models/ArtWork');
 const mongoose = require('mongoose');
+const { getFileNames } = require('../utils/multer');
 
 // Register Artwork
 const registerArtWork = async (req, res) => {
 
-    const { title, partial_desc, complete_desc, author, colection, suport, date, dimension } = req.body;
-
+    const { title, partialDesc, completeDesc, author, suport, year, dimension } = req.body;
 
     const image = req.files && req.files['image'] ? req.files['image'][0].filename : req.file ? req.file : null;
-    const audio_desc = req.files && req.files['audio_desc'] ? req.files['audio_desc'][0].filename : req.file ? req.file : null;
+    const audioDesc = req.files && req.files['audioDesc'] ? getFileNames(req.files['audioDesc']) : req.file ? req.file : null;
+    const archived = false;
 
     const newArtWork = await ArtWork.create({
         title,
-        partial_desc,
-        complete_desc,
-        audio_desc,
+        image,
+        partialDesc,
+        completeDesc,
+        audioDesc,
         author,
-        colection,
         suport,
-        date,
+        year,
         dimension,
-        image
+        archived
     });
 
     // if artwork was created successfully, return the token
@@ -35,18 +36,18 @@ const registerArtWork = async (req, res) => {
 
 // Get all artWorks
 const getAllArtWorks = async (req, res) => {
-    const artWorks = await ArtWork.find({}).sort([["date", -1]]).exec();
+    const artWorks = await ArtWork.find({}).sort([["year", -1]]).exec();
     return res.status(200).json(artWorks);
 };
 
 // Update an artWork
 const updateArtWork = async (req, res) => {
-    const { title, partial_desc, complete_desc, author, colection, suport, date, dimension } = req.body;
+    const { title, partialDesc, completeDesc, author, suport, year, dimension, archived } = req.body;
     const { id } = req.params;
     const artWork = await ArtWork.findById(new mongoose.Types.ObjectId(id));
 
     const image = req.files && req.files['image'] ? req.files['image'][0].filename : req.file ? req.file : null;
-    const audio_desc = req.files && req.files['audio_desc'] ? req.files['audio_desc'][0].filename : req.file ? req.file : null;
+    const audioDesc = req.files && req.files['audioDesc'] ? getFileNames(req.files['audioDesc']) : req.file ? req.file : null;
 
     // Check if artwork exists
     if (!artWork) {
@@ -57,33 +58,32 @@ const updateArtWork = async (req, res) => {
     if (title) {
         artWork.title = title;
     };
-    if (partial_desc) {
-        artWork.partial_desc = partial_desc;
+    if (partialDesc) {
+        artWork.partialDesc = partialDesc;
     };
-    if (complete_desc) {
-        artWork.complete_desc = complete_desc;
+    if (completeDesc) {
+        artWork.completeDesc = completeDesc;
     };
-    if (audio_desc) {
-        artWork.audio_desc = audio_desc;
+    if (audioDesc) {
+        artWork.audioDesc = audioDesc;
     };
     if (author) {
         artWork.author = author;
     };
-    if (colection) {
-        artWork.colection = colection;
-    };
     if (suport) {
         artWork.suport = suport;
     };
-    if (date) {
-        artWork.date = date;
+    if (year) {
+        artWork.year = year;
     };
     if (dimension) {
         artWork.dimension = dimension;
     };
-
     if (image) {
         artWork.image = image;
+    };
+    if (archived) {
+        artWork.archived = archived;
     };
 
     await artWork.save();

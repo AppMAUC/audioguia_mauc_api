@@ -5,9 +5,9 @@ const artistSchema = new Schema({
         image: String,
         name: String,
         description: String,
-        birth_date: Date,
-        audio_desc: String,
         biography: String,
+        audioDesc: Array,
+        birthDate: Date,
     },
     {
         timestamps: true

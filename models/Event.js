@@ -6,6 +6,7 @@ const eventSchema = new Schema({
         title: String,
         description: String,
         date: Date,
+        archived: Boolean
     },
     {
         timestamps: true

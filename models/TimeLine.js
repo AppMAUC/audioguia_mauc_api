@@ -11,6 +11,6 @@ const timeLineSchema = new Schema({
     }
 );
 
-const Event = mongoose.model("TimeLine", timeLineSchema);
+const TimeLine = mongoose.model("TimeLine", timeLineSchema);
 
-module.exports = Event;
+module.exports = TimeLine;

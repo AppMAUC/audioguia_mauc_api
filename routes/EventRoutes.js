@@ -5,8 +5,8 @@ const router = express.Router();
 const { registerEvent, deleteEvent, updateEvent, getEventById, getAllEvents, searchEvent } = require("../controllers/EventController");
 
 // Middlewares
-const validate = require("../middlewares/handleValidation");
-const { eventCreateValidation, eventUpdateValidation } = require("../middlewares/eventValidations");
+const validate = require("../validations/handleValidation");
+const { eventCreateValidation, eventUpdateValidation } = require("../validations/eventValidations");
 const { authGuard } = require("../middlewares/authGuard")
 const { imageUpload } = require("../middlewares/multerConfig")
 

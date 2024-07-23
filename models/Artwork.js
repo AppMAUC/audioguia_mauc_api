@@ -2,17 +2,17 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const artWorkSchema = new Schema({
-        image: String,
-        title: String,
-        partial_desc: String,
-        complete_desc: String,
-        audio_desc: String,
-        author: String,
-        colection: String,
-        suport: String,
-        date: Date,
-        dimension: String
-    },
+    title: String,
+    image: String,
+    partialDesc: String,
+    completeDesc: String,
+    audioDesc: Array,
+    author: String,
+    suport: String,
+    year: String,
+    dimension: String,
+    archived: Boolean
+},
     {
         timestamps: true
     }

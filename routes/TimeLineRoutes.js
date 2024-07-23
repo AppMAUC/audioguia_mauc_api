@@ -6,8 +6,8 @@ const { registerTimeLine, updateTimeLine, deleteTimeLine, searchTimeLine, getTim
 
 // Middlewares
 const { authGuard } = require("../middlewares/authGuard");
-const validate = require("../middlewares/handleValidation");
-const { timeLineCreateValidation, timeLineUpdateValidation } = require("../middlewares/timeLineValidations");
+const validate = require("../validations/handleValidation");
+const { timeLineCreateValidation, timeLineUpdateValidation } = require("../validations/timeLineValidations");
 
 // Routes
 router.post("/", authGuard, timeLineCreateValidation(), validate, registerTimeLine);

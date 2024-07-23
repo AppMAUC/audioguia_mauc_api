@@ -16,6 +16,7 @@ const generateToken = (id) => {
 const register = async (req, res) => {
 
     const { name, email, password, accessLevel } = req.body;
+    const image = req.files && req.files['image'] ? req.files['image'][0].filename : req.file ? req.file.filename : null;
 
     // Check if admin exists
     const admin = await Admin.findOne({ email });
@@ -33,7 +34,8 @@ const register = async (req, res) => {
         name,
         email,
         password: passwordHash,
-        accessLevel
+        accessLevel,
+        image
     });
 
     // if admin was created successfully, return the token
@@ -72,7 +74,7 @@ const login = async (req, res) => {
     // return admin with token
     res.status(201).json({
         _id: admin._id,
-        profileImage: admin.profileImage,
+        image: admin.image,
         token: generateToken(admin._id)
     });
 
@@ -89,11 +91,8 @@ const getCurrentAdmin = async (req, res) => {
 const update = async (req, res) => {
     const { name, password } = req.body;
 
-    let profileImage = null;
+    const image = req.files && req.files['image'] ? req.files['image'][0].filename : req.file ? req.file.filename : null;
 
-    if (req.file) {
-        profileImage = req.file.filename;
-    };
 
     const reqAdmin = req.admin;
 
@@ -109,8 +108,8 @@ const update = async (req, res) => {
         admin.password = passwordHash;
     };
 
-    if (profileImage) {
-        admin.profileImage = profileImage;
+    if (image) {
+        admin.image = image;
     };
 
     await admin.save();
@@ -142,7 +141,7 @@ const getAdminById = async (req, res) => {
 }
 
 const getAllAdmins = async (req, res) => {
-    const admin = await Admin.find({}).sort([["date", -1]]).exec();
+    const admin = await Admin.find({}).sort([["date", -1]]).select("-password").exec();
 
     return res.status(200).json(admin);
 };
