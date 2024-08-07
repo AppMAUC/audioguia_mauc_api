@@ -1,7 +1,7 @@
 const multer = require("multer");
 const path = require("path");
-const { types } = require("../config/files");
-const { getPath, getFolder } = require('../utils/multer');
+const { fileValidation } = require("../config/files");
+const { getPath, getFolder, getAdvancedFolder } = require('../utils/multer');
 
 // Destination storage config
 const mediaStorage = multer.diskStorage({
@@ -17,7 +17,7 @@ const imageUpload = multer({
     storage: mediaStorage,
     fileFilter(req, file, cb) {
         if (!file.originalname.match(/\.(png|jpg)$/)) {
-            return cb(new Error("Por favor, envie apenas jpg ou png!"));
+            return cb(null, false);
         };
         cb(undefined, true);
     }
@@ -28,7 +28,7 @@ const audioUpload = multer({
     storage: mediaStorage,
     fileFilter(req, file, cb) {
         if (!file.originalname.match(/\.(mp3|mp4)$/)) {
-            return cb(new Error("Por favor, envie apenas mp3 ou mp4!"));
+            return cb(null, false);
         };
         cb(undefined, true);
     }
@@ -37,7 +37,7 @@ const audioUpload = multer({
 const combinedUpload = multer({
     storage: multer.diskStorage({
         destination: function (req, file, cb) {
-            cb(null, `uploads/${getFolder(file.fieldname)}s/${getPath(req.baseUrl)}/`);
+            cb(null, `uploads/${getAdvancedFolder(file, req.baseUrl)}/`);
         },
         filename: function (req, file, cb) {
             let folder = getFolder(file.fieldname)
@@ -49,17 +49,8 @@ const combinedUpload = multer({
         }
     }),
     fileFilter(req, file, cb) {
-
         const folder = getFolder(file.fieldname);
-
-        for (let i = 0; i < types[folder].length; i++) {
-            if (!types[folder].includes(file.mimetype.split('/')[1])) {
-                return cb(new Error(`Tipo de arquivo não suportado`));
-            }
-        }
-
-        cb(null, true);
-
+        cb(null, fileValidation(folder, [file]));
     }
 }).fields([
     { name: 'image', maxCount: 1 },

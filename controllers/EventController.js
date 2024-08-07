@@ -1,5 +1,6 @@
 const Event = require('../models/Event');
 const mongoose = require('mongoose');
+const { deleteFiles, getFilesPaths, getFilePath } = require('../utils/removeFile');
 
 const registerEvent = async (req, res) => {
 
@@ -35,6 +36,7 @@ const deleteEvent = async (req, res) => {
             return;
         };
 
+        deleteFiles(getFilesPaths({ images: [event.image] }, 'events'));
         await Event.findByIdAndDelete(event._id);
 
         res.status(200).json({
@@ -69,6 +71,7 @@ const updateEvent = async (req, res) => {
         event.date = date;
     };
     if (image) {
+        deleteFiles([getFilePath('image', 'events', event.image)]);
         event.image = image;
     };
     if (archived) {

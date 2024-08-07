@@ -1,4 +1,5 @@
 const { body } = require("express-validator");
+const { fileValidation } = require("../config/files");
 
 const expositionCreateValidation = () => {
     return [
@@ -38,6 +39,11 @@ const expositionCreateValidation = () => {
             .optional()
             .isBoolean()
             .withMessage("O sistema deve saber o estado da obra"),
+        body("image")
+            .custom((value, { req }) => {
+                return fileValidation('image', [req.file]);
+            })
+            .withMessage("Envie apenas arquivos png ou jpg"),
     ];
 };
 // Verificar se o Array terá problemas
@@ -87,6 +93,15 @@ const expositionUpdateValidation = () => {
             .optional()
             .isBoolean()
             .withMessage("O sistema deve saber o estado da obra"),
+        body("image")
+            .optional()
+            .custom((value, { req }) => {
+                if (fileExists(getFilePath('images', 'expositions', value))) {
+                    return true;
+                }
+                return fileValidation('image', req.files['image']);
+            })
+            .withMessage("Envie apenas arquivos png ou jpg"),
     ];
 };
 

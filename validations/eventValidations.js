@@ -15,6 +15,11 @@ const eventCreateValidation = () => {
             .optional()
             .isBoolean()
             .withMessage("O sistema deve saber o estado da obra"),
+        body("image")
+            .custom((value, { req }) => {
+                return fileValidation('image', req.files['image']);
+            })
+            .withMessage("Envie apenas arquivos png ou jpg"),
     ];
 };
 
@@ -36,6 +41,15 @@ const eventUpdateValidation = () => {
             .optional()
             .isBoolean()
             .withMessage("O sistema deve saber o estado da obra"),
+        body("image")
+            .optional()
+            .custom((value, { req }) => {
+                if (fileExists(getFilePath('images', 'events', value))) {
+                    return true;
+                }
+                return fileValidation('image', req.files['image']);
+            })
+            .withMessage("Envie apenas arquivos png ou jpg"),
     ];
 };
 

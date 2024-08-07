@@ -1,14 +1,14 @@
 const ArtWork = require('../models/ArtWork');
 const mongoose = require('mongoose');
 const { getFileNames } = require('../utils/multer');
-
+const { deleteFiles, getFilesPaths, getFilePath, createElements } = require('../utils/removeFile');
 // Register Artwork
 const registerArtWork = async (req, res) => {
 
     const { title, partialDesc, completeDesc, author, suport, year, dimension } = req.body;
 
-    const image = req.files && req.files['image'] ? req.files['image'][0].filename : req.file ? req.file : null;
-    const audioDesc = req.files && req.files['audioDesc'] ? getFileNames(req.files['audioDesc']) : req.file ? req.file : null;
+    const image = req.files && req.files['image'] ? req.files['image'][0].filename : req.file ? req.file.filename : null;
+    const audioDesc = req.files && req.files['audioDesc'] ? getFileNames(req.files['audioDesc']) : req.file ? req.file.filename : null;
     const archived = false;
 
     const newArtWork = await ArtWork.create({
@@ -65,7 +65,27 @@ const updateArtWork = async (req, res) => {
         artWork.completeDesc = completeDesc;
     };
     if (audioDesc) {
-        artWork.audioDesc = audioDesc;
+
+        let data = artWork.audioDesc;
+
+        if (audioDesc.length > 1) {
+            data = audioDesc;
+            deleteFiles(getFilesPaths({ audios: artWork.audioDesc }, 'artworks'));
+        }
+
+        if (audioDesc && req.body.audioDesc) {
+            const { audioDesc: previousAudioDesc } = req.body;
+            const paths = getFilesPaths({ audios: artWork.audioDesc }, 'artworks');
+            const audioType = previousAudioDesc.match(/\-(br|en)/)[1];
+
+            const oldAudio = paths.filter((path) => !path.includes(audioType));
+
+            deleteFiles(oldAudio);
+
+            data = [...audioDesc, previousAudioDesc];
+        }
+        
+        artWork.audioDesc = data;
     };
     if (author) {
         artWork.author = author;
@@ -80,6 +100,7 @@ const updateArtWork = async (req, res) => {
         artWork.dimension = dimension;
     };
     if (image) {
+        deleteFiles([getFilePath('image', 'artworks', artWork.image)]);
         artWork.image = image;
     };
     if (archived) {
@@ -125,12 +146,17 @@ const deleteArtWork = async (req, res) => {
             return;
         };
 
+
+        deleteFiles(getFilesPaths(createElements(artWork.audioDesc, [artWork.image]), 'artworks'));
+
         await ArtWork.findByIdAndDelete(artWork._id);
 
         res.status(200).json({
             id: artWork._id,
             message: "Obra excluída com sucesso."
         });
+
+
     } catch (error) {
         res.status(404).json({ errors: ["Obra não encontrada"] });
         return;

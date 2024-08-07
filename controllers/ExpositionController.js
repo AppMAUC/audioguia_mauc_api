@@ -1,5 +1,6 @@
 const Exposition = require('../models/Exposition');
 const mongoose = require('mongoose');
+const { deleteFiles, getFilesPaths, getFilePath } = require('../utils/removeFile');
 
 // Register Exposition
 const registerExposition = async (req, res) => {
@@ -75,6 +76,7 @@ const updateExposition = async (req, res) => {
         exposition.type = type;
     };
     if (image) {
+        deleteFiles([getFilePath('image', 'expositions', exposition.image)]);
         exposition.image = image;
     };
     if (archived) {
@@ -119,6 +121,8 @@ const deleteExposition = async (req, res) => {
             res.status(404).json({ errors: ["Exposição não encontrada."] });
             return;
         };
+
+        deleteFiles(getFilesPaths({ images: [exposition.image] }, 'exposition'));
 
         await Exposition.findByIdAndDelete(exposition._id);
 

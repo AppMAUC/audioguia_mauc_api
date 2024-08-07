@@ -1,4 +1,6 @@
 const { body } = require("express-validator");
+const { fileValidation } = require("../config/files");
+const { fileExists, getFilePath } = require("../utils/removeFile");
 
 const adminCreateValidation = () => {
 
@@ -28,8 +30,6 @@ const adminCreateValidation = () => {
                 return true
             }),
         body("accessLevel")
-            .isString()
-            .withMessage("Adicione um nível de acesso válido")
             .custom((value) => {
                 const validAcess = [1, 2, "1", "2"];
                 if (!validAcess.includes(value)) {
@@ -37,6 +37,11 @@ const adminCreateValidation = () => {
                 };
                 return true;
             }),
+        body("image")
+            .custom((value, { req }) => {
+                return fileValidation('image', req.files['image']);
+            })
+            .withMessage("Envie apenas arquivos png ou jpg"),
     ];
 };
 
@@ -62,7 +67,16 @@ const adminUpdateValidation = () => {
         body("password")
             .isLength({ min: 5 })
             .withMessage("A senha precisa ter no mínimo 5 caracteres")
+            .optional(),
+        body("image")
             .optional()
+            .custom((value, { req }) => {
+                if (fileExists(getFilePath('images', 'admin', value))) {
+                    return true;
+                }
+                return fileValidation('image', req.files['image']);
+            })
+            .withMessage("Envie apenas arquivos png ou jpg"),
 
     ];
 };

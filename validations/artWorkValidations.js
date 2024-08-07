@@ -1,4 +1,6 @@
 const { body } = require("express-validator");
+const { fileValidation } = require("../config/files");
+const { fileExists, getFilePath } = require("../utils/removeFile");
 
 const artWorkCreateValidation = () => {
     return [
@@ -29,6 +31,16 @@ const artWorkCreateValidation = () => {
             .optional()
             .isBoolean()
             .withMessage("O sistema deve saber o estado da obra"),
+        body("image")
+            .custom((value, { req }) => {
+                return fileValidation('image', req.files['image']);
+            })
+            .withMessage("Envie apenas arquivos png ou jpg"),
+        body("audioDesc")
+            .custom((value, { req }) => {
+                return fileValidation('audio', req.files['audioDesc']);
+            })
+            .withMessage("Apenas arquivos mp3 ou mp4 são permitidos"),
     ];
 };
 
@@ -66,6 +78,34 @@ const artWorkUpdateValidation = () => {
             .optional()
             .isBoolean()
             .withMessage("O sistema deve saber o estado da obra"),
+        body("image")
+            .optional()
+            .custom((value, { req }) => {
+                if (fileExists(getFilePath('images', 'artworks', value))) {
+                    return true;
+                }
+                return fileValidation('image', req.files['image']);
+            })
+            .withMessage("Envie apenas arquivos png ou jpg"),
+        body("audioDesc")
+            .optional()
+            .custom((value, { req }) => {
+
+                if (value && req.files['audioDesc']) {
+                    return fileExists(getFilePath('audios', 'artworks', value)) && fileValidation('audio', req.files['audioDesc']);
+                }
+
+                if (typeof (value) == 'object') {
+                    const audioExists = value.map((item) => {
+                        return fileExists(getFilePath('audios', 'artworks', item))
+                    })
+
+                    return audioExists.includes(false) ? false : true;
+                }
+
+                return fileValidation('audio', req.files['audioDesc']);
+            })
+            .withMessage("Apenas arquivos mp3 ou mp4 são permitidos"),
     ];
 };
 

@@ -2,6 +2,7 @@ const Admin = require('../models/Admin');
 const mongoose = require('mongoose');
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { deleteFiles, getFilesPaths, getFilePath } = require('../utils/removeFile');
 
 const jwtSecret = process.env.JWT_PASS;
 
@@ -51,6 +52,7 @@ const register = async (req, res) => {
 
 };
 
+
 // Sign admin in
 const login = async (req, res) => {
 
@@ -81,6 +83,35 @@ const login = async (req, res) => {
 
 };
 
+const deleteAdmin = async (req, res) => {
+    const { id } = req.params;
+    const adminRequest = req.admin;
+
+    try {
+        if (adminRequest.accessLevel != '1') {
+            res.status(404).json({ errors: ["Operação não autorizada para esse nível de acesso."] });
+            return;
+        };
+        const admin = await Admin.findById(new mongoose.Types.ObjectId(id));
+
+        
+        if (!admin) {
+            res.status(404).json({ errors: ["Administrador não encontrada."] });
+            return;
+        };
+        
+        deleteFiles(getFilesPaths({ images: [admin.image] }, 'admin'));
+        await Admin.findByIdAndDelete(admin._id);
+
+        res.status(200).json({
+            id: admin._id,
+            message: "Administrador excluído com sucesso."
+        });
+    } catch (error) {
+        res.status(404).json({ errors: ["Artista não encontrada"] });
+        return;
+    };
+};
 // Get current logged admin
 const getCurrentAdmin = async (req, res) => {
     const admin = req.admin;
@@ -109,6 +140,7 @@ const update = async (req, res) => {
     };
 
     if (image) {
+        deleteFiles([getFilePath('image', 'admin', admin.image)]);
         admin.image = image;
     };
 
@@ -153,6 +185,7 @@ const tokenIsValid = async (req, res) => {
 module.exports = {
     register,
     login,
+    deleteAdmin,
     getCurrentAdmin,
     update,
     getAdminById,

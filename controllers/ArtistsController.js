@@ -1,6 +1,7 @@
 const Artist = require("../models/Artist");
 const mongoose = require("mongoose");
 const { getFileNames } = require('../utils/multer');
+const { deleteFiles, getFilesPaths, createElements } = require("../utils/removeFile");
 
 const registerArtist = async (req, res) => {
 
@@ -37,6 +38,8 @@ const deleteArtist = async (req, res) => {
             res.status(404).json({ errors: ["Artista não encontrada."] });
             return;
         };
+
+        deleteFiles(getFilesPaths(createElements(artist.audioDesc, [artist.image]), 'artists'));
 
         await Artist.findByIdAndDelete(artist._id);
 
@@ -91,9 +94,30 @@ const updateArtist = async (req, res) => {
         artist.biography = biography;
     };
     if (audioDesc) {
-        artist.audioDesc = audioDesc;
+
+        let data = artist.audioDesc;
+
+        if (audioDesc.length > 1) {
+            data = audioDesc;
+            deleteFiles(getFilesPaths({ audios: artist.audioDesc }, 'artists'));
+        }
+
+        if (audioDesc && req.body.audioDesc) {
+            const { audioDesc: previousAudioDesc } = req.body;
+            const paths = getFilesPaths({ audios: artist.audioDesc }, 'artists');
+            const audioType = previousAudioDesc.match(/\-(br|en)/)[1];
+
+            const oldAudio = paths.filter((path) => !path.includes(audioType));
+
+            deleteFiles(oldAudio);
+
+            data = [...audioDesc, previousAudioDesc];
+        }
+
+        artist.audioDesc = data;
     };
-    if (image) {
+    if (image) { // Adicionar tratamento extra para apagar a imagem anterior da pasta uploads
+        deleteFiles([getFilePath('image', 'artists', artist.image)]);
         artist.image = image;
     };
 
