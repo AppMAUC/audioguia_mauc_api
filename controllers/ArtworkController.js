@@ -100,7 +100,7 @@ const updateArtWork = async (req, res) => {
         artWork.dimension = dimension;
     };
     if (image) {
-        deleteFiles([getFilePath('image', 'artworks', artWork.image)]);
+        deleteFiles([getFilePath('images', 'artworks', artWork.image)]);
         artWork.image = image;
     };
     if (archived) {

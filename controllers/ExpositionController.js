@@ -76,7 +76,7 @@ const updateExposition = async (req, res) => {
         exposition.type = type;
     };
     if (image) {
-        deleteFiles([getFilePath('image', 'expositions', exposition.image)]);
+        deleteFiles([getFilePath('images', 'expositions', exposition.image)]);
         exposition.image = image;
     };
     if (archived) {

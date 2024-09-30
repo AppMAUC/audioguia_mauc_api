@@ -71,7 +71,7 @@ const updateEvent = async (req, res) => {
         event.date = date;
     };
     if (image) {
-        deleteFiles([getFilePath('image', 'events', event.image)]);
+        deleteFiles([getFilePath('images', 'events', event.image)]);
         event.image = image;
     };
     if (archived) {

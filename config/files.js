@@ -1,5 +1,3 @@
-const { fileExists, getFilePath } = require("../utils/removeFile");
-
 const types = {
     audio: ['mp4', 'mpeg'],
     image: ['jpeg', 'png'],

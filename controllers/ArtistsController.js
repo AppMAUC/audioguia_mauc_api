@@ -1,7 +1,7 @@
 const Artist = require("../models/Artist");
 const mongoose = require("mongoose");
 const { getFileNames } = require('../utils/multer');
-const { deleteFiles, getFilesPaths, createElements } = require("../utils/removeFile");
+const { deleteFiles, getFilesPaths, getFilePath, createElements } = require("../utils/removeFile");
 
 const registerArtist = async (req, res) => {
 
@@ -117,7 +117,7 @@ const updateArtist = async (req, res) => {
         artist.audioDesc = data;
     };
     if (image) { // Adicionar tratamento extra para apagar a imagem anterior da pasta uploads
-        deleteFiles([getFilePath('image', 'artists', artist.image)]);
+        deleteFiles([getFilePath('images', 'artists', artist.image)]);
         artist.image = image;
     };
 

@@ -9,7 +9,7 @@ const jwtSecret = process.env.JWT_PASS;
 // Generate admin token
 const generateToken = (id) => {
     return jwt.sign({ id }, jwtSecret, {
-        expiresIn: "7d"
+        expiresIn: '7d'
     });
 };
 
@@ -69,7 +69,7 @@ const login = async (req, res) => {
 
     // check if password matches
     if (!(await bcrypt.compare(password, admin.password))) {
-        res.status(422).json({ errors: ["Senha inválida."] })
+        res.status(422).json({ errors: ["Administrador ou senha inválidos."] })
         return;
     };
 
@@ -140,7 +140,7 @@ const update = async (req, res) => {
     };
 
     if (image) {
-        deleteFiles([getFilePath('image', 'admin', admin.image)]);
+        deleteFiles([getFilePath('images', 'admin', admin.image)]);
         admin.image = image;
     };
 
