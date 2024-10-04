@@ -1,5 +1,5 @@
 const { body } = require("express-validator");
-const { fileValidation } = require("../config/files");
+const { mimeTypeValidation } = require("../utils/mimetypeValidation");
 const { fileExists, getFilePath } = require("../utils/removeFile");
 
 const adminCreateValidation = () => {
@@ -39,7 +39,7 @@ const adminCreateValidation = () => {
             }),
         body("image")
             .custom((value, { req }) => {
-                return fileValidation('image', req.files['image']);
+                return mimeTypeValidation('image', [req.file]);
             })
             .withMessage("Envie apenas arquivos png ou jpg"),
     ];
@@ -74,7 +74,7 @@ const adminUpdateValidation = () => {
                 if (fileExists(getFilePath('images', 'admin', value))) {
                     return true;
                 }
-                return fileValidation('image', req.files['image']);
+                return mimeTypeValidation('image', req.files['image']);
             })
             .withMessage("Envie apenas arquivos png ou jpg"),
 

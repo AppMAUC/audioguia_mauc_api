@@ -7,6 +7,7 @@ const artWorkSchema = new Schema({
     partialDesc: String,
     completeDesc: String,
     audioDesc: Array,
+    audioGuia: Array,
     author: String,
     suport: String,
     year: String,

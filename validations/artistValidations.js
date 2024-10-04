@@ -1,5 +1,5 @@
 const { body } = require('express-validator');
-const { fileValidation } = require('../config/files');
+const { mimeTypeValidation } = require('../utils/mimeTypeValidation');
 const { fileExists, getFilePath } = require('../utils/removeFile');
 
 const artistCreateValidation = () => {
@@ -18,12 +18,12 @@ const artistCreateValidation = () => {
             .withMessage("A biografia do artista é obrigatória"),
         body("image")
             .custom((value, { req }) => {
-                return fileValidation('image', req.files['image']);
+                return mimeTypeValidation('image', req.files['image']);
             })
             .withMessage("Envie apenas arquivos png ou jpg"),
         body("audioDesc")
             .custom((value, { req }) => {
-                return fileValidation('audio', req.files['audioDesc']);
+                return mimeTypeValidation('audio', req.files['audioDesc']);
             })
             .withMessage("Apenas arquivos mp3 ou mp4 são permitidos"),
 
@@ -53,7 +53,7 @@ const artistUpdateValidation = () => {
                 if (fileExists(getFilePath('images', 'artworks', value))) {
                     return true;
                 }
-                return fileValidation('image', req.files['image']);
+                return mimeTypeValidation('image', req.files['image']);
             })
             .withMessage("Envie apenas arquivos png ou jpg"),
         body("audioDesc")
@@ -61,7 +61,7 @@ const artistUpdateValidation = () => {
             .custom((value, { req }) => {
 
                 if (value && req.files['audioDesc']) {
-                    return fileExists(getFilePath('audios', 'artworks', value)) && fileValidation('audio', req.files['audioDesc']);
+                    return fileExists(getFilePath('audios', 'artworks', value)) && mimeTypeValidation('audio', req.files['audioDesc']);
                 }
 
                 if (typeof (value) == 'object') {
@@ -72,7 +72,7 @@ const artistUpdateValidation = () => {
                     return audioExists.includes(false) ? false : true;
                 }
 
-                return fileValidation('audio', req.files['audioDesc']);
+                return mimeTypeValidation('audio', req.files['audioDesc']);
             })
             .withMessage("Apenas arquivos mp3 ou mp4 são permitidos"),
 

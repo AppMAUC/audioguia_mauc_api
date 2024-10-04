@@ -10,7 +10,7 @@ const { registerArtist, deleteArtist, updateArtist, searchArtist, getAllArtists,
 const validate = require("../validations/handleValidation");
 const { artistCreateValidation, artistUpdateValidation } = require("../validations/artistValidations");
 const { authGuard } = require("../middlewares/authGuard")
-const { combinedUpload } = require("../middlewares/multerConfig")
+const { combinedUpload } = require("../middlewares/multer")
 
 // Routes
 router.post("/", authGuard, combinedUpload, artistCreateValidation(), validate, registerArtist);

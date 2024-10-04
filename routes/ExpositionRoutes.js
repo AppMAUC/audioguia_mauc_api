@@ -9,17 +9,17 @@ const { registerExposition, deleteExposition, updateExposition, getExpositionByI
 const { authGuard } = require("../middlewares/authGuard");
 const validate = require("../validations/handleValidation");
 const { expositionCreateValidation, expositionUpdateValidation } = require("../validations/expositionValidations");
-const { imageUpload } = require('../middlewares/multerConfig');
+const { upload } = require('../middlewares/multer');
 
 //Routes
-router.post("/", authGuard, imageUpload.single("image"), expositionCreateValidation(), validate, registerExposition);
+router.post("/", authGuard, upload.single("image"), expositionCreateValidation(), validate, registerExposition);
 router.delete("/:id", authGuard, validate, deleteExposition);
 
 router.get("/", getAllExpostitions);
 router.get("/search", searchExpositions);
 router.get("/:id", getExpositionById);
 
-router.put("/:id", authGuard, imageUpload.single("image"), expositionUpdateValidation(), validate, updateExposition);
+router.put("/:id", authGuard, upload.single("image"), expositionUpdateValidation(), validate, updateExposition);
 
 
 

@@ -9,7 +9,7 @@ const { registerArtWork, deleteArtWork, updateArtWork, getArtWorkById, getAllArt
 const { authGuard } = require("../middlewares/authGuard");
 const validate = require("../validations/handleValidation");
 const { artWorkCreateValidation, artWorkUpdateValidation } = require("../validations/artWorkValidations");
-const { combinedUpload } = require("../middlewares/multerConfig")
+const { combinedUpload } = require("../middlewares/multer")
 
 //Routes
 router.post("/", authGuard, combinedUpload, artWorkCreateValidation(), validate, registerArtWork);

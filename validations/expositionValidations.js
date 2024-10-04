@@ -1,5 +1,5 @@
 const { body } = require("express-validator");
-const { fileValidation } = require("../config/files");
+const { mimeTypeValidation } = require("../utils/mimetypeValidation");
 
 const expositionCreateValidation = () => {
     return [
@@ -41,7 +41,7 @@ const expositionCreateValidation = () => {
             .withMessage("O sistema deve saber o estado da obra"),
         body("image")
             .custom((value, { req }) => {
-                return fileValidation('image', [req.file]);
+                return mimeTypeValidation('image', [req.file]);
             })
             .withMessage("Envie apenas arquivos png ou jpg"),
     ];
@@ -99,7 +99,7 @@ const expositionUpdateValidation = () => {
                 if (fileExists(getFilePath('images', 'expositions', value))) {
                     return true;
                 }
-                return fileValidation('image', req.files['image']);
+                return mimeTypeValidation('image', req.files['image']);
             })
             .withMessage("Envie apenas arquivos png ou jpg"),
     ];

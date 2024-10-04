@@ -1,6 +1,6 @@
 const Artist = require("../models/Artist");
 const mongoose = require("mongoose");
-const { getFileNames } = require('../utils/multer');
+const { getFileNames } = require('../utils/multerFunctions');
 const { deleteFiles, getFilesPaths, getFilePath, createElements } = require("../utils/removeFile");
 
 const registerArtist = async (req, res) => {

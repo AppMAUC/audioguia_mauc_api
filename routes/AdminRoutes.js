@@ -9,16 +9,16 @@ const { register, login, deleteAdmin, getCurrentAdmin, update, getAdminById, get
 const validate = require("../validations/handleValidation");
 const { adminCreateValidation, loginValidation, adminUpdateValidation } = require("../validations/adminValidations");
 const { authGuard, verifyToken } = require("../middlewares/authGuard")
-const { imageUpload } = require("../middlewares/multerConfig")
+const { upload } = require("../middlewares/multer")
 
 // Routes
-router.post("/register", imageUpload.single("image"), adminCreateValidation(), validate, register); // adicionar os midlewares
+router.post("/register", upload.single("image"), adminCreateValidation(), validate, register); // adicionar os midlewares
 router.post("/login", loginValidation(), validate, login);
 router.delete("/:id", authGuard, validate, deleteAdmin);
 router.get("/", authGuard, getAllAdmins);
 router.get("/profile", authGuard, getCurrentAdmin);
 router.get("/token", verifyToken, tokenIsValid);
 router.get("/:id", authGuard, getAdminById);
-router.put("/", authGuard, imageUpload.single("image"), adminUpdateValidation(), validate, update);
+router.put("/", authGuard, upload.single("image"), adminUpdateValidation(), validate, update);
 
 module.exports = router;
