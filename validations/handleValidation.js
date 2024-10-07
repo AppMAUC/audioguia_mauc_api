@@ -1,19 +1,37 @@
-const { validationResult } = require('express-validator');
-
+const { validationResult } = require("express-validator");
+const {
+  rollBackFiles,
+} = require("../utils/deleteFiles");
+/**
+ * Middleware function to handle validation results from express-validator.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @param {Function} next - The next middleware function.
+ * @returns {void|Object} - Calls next middleware if no validation errors, otherwise returns a 422 status with error messages.
+ * @example
+ * // Example of using the validate middleware in a route
+ * router.post("/register", validate, register);
+ */
 const validate = (req, res, next) => {
-    const errors = validationResult(req);
+  const errors = validationResult(req);
 
-    if (errors.isEmpty()) {
-        return next();
-    };
+  if (errors.isEmpty()) {
+    return next();
+  }
 
-    const extractedErros = [];
+  const extractedErros = [];
 
-    errors.array().map((err) => extractedErros.push(err.msg));
+  errors.array().map((err) => extractedErros.push(err.msg));
 
-    return res.status(422).json({
-        errors: extractedErros
-    });
+
+  // Como o mullter está sendo chamado antes das validações do express-validator, os arquivos são salvos no disco antes de serem validados.
+  // Por isso, é necessário deletar os arquivos que foram salvos no servidor antes de retornar o erro.
+  rollBackFiles(req);
+
+  return res.status(422).json({
+    errors: extractedErros,
+  });
 };
 
 module.exports = validate;

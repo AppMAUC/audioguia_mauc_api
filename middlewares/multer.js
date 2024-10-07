@@ -33,7 +33,27 @@ const combinedUpload = multer({
   { name: "audioGuia", maxCount: 2 },
 ]);
 
+/**
+ * Generic upload middleware that allows specifying custom fields.
+ * Uses combined storage and default file filter.
+ *
+ * @param {Array} fields - Array of field objects specifying the field name and max count.
+ * @returns {multer.Instance} - Multer instance for handling file uploads.
+ * @example
+ * // Usage in an Express route
+ * const { genericUpload } = require('./middlewares/multer');
+ *
+ * app.post('/route', genericUpload([{ name: 'image', maxCount: 1 }]), (req, res) => {
+ */
+const genericUpload = (fields) => {
+  return multer({
+    storage: combinedStorage,
+    fileFilter: defaultFilter,
+  }).fields(fields);
+};
+
 module.exports = {
   upload,
   combinedUpload,
+  genericUpload,
 };

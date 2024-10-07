@@ -1,141 +1,220 @@
-const Event = require('../models/Event');
-const mongoose = require('mongoose');
-const { deleteFiles, getFilesPaths, getFilePath } = require('../utils/removeFile');
+const Event = require("../models/Event");
+const mongoose = require("mongoose");
+const {
+  deleteFiles,
+  getFilesPaths,
+  getFilePath,
+  rollBackFiles,
+} = require("../utils/deleteFiles");
 
+/**
+ * Registers a new event.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} req.body - The request body.
+ * @param {string} req.body.description - The description of the event.
+ * @param {string} req.body.date - The date of the event.
+ * @param {string} req.body.title - The title of the event.
+ * @param {Object} req.file - The file object.
+ * @param {string} req.file.filename - The filename of the uploaded image.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>}
+ */
 const registerEvent = async (req, res) => {
+  const { description, date, title } = req.body;
 
-    const { description, date, title } = req.body;
+  const image = req.file ? req.file.filename : null;
+  const archived = false;
+  const newEvent = await Event.create({
+    description,
+    date,
+    title,
+    image,
+    archived,
+  });
 
-    const image = req.file ? req.file.filename : null;
-    const archived = false
-    const newEvent = await Event.create({
-        description,
-        date,
-        title,
-        image,
-        archived
-    });
+  if (!newEvent) {
+    rollBackFiles(req);
+    res
+      .status(422)
+      .json({ errors: ["Houve um erro, por favor tente mais tarde"] });
+    return;
+  }
 
-    if (!newEvent) {
-        res.status(422).json({ errors: ["Houve um erro, por favor tente mais tarde"] });
-        return;
-    };
-
-    res.status(201).json(newEvent);
-
+  res.status(201).json(newEvent);
 };
 
-const deleteEvent = async (req, res) => {
-    const { id } = req.params;
-
-    try {
-        const event = await Event.findById(new mongoose.Types.ObjectId(id));
-
-        if (!event) {
-            res.status(404).json({ errors: ["Evento não encontrada."] });
-            return;
-        };
-
-        deleteFiles(getFilesPaths({ images: [event.image] }, 'events'));
-        await Event.findByIdAndDelete(event._id);
-
-        res.status(200).json({
-            id: event._id,
-            message: "Evento excluído com sucesso."
-        });
-    } catch (error) {
-        res.status(404).json({ errors: ["Evento não encontrada"] });
-        return;
-    };
-};
-
+/**
+ * Updates an event by ID.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} req.body - The request body.
+ * @param {string} [req.body.description] - The description of the event.
+ * @param {string} [req.body.date] - The date of the event.
+ * @param {string} [req.body.title] - The title of the event.
+ * @param {boolean} [req.body.archived] - The archived status of the event.
+ * @param {Object} req.params - The request parameters.
+ * @param {string} req.params.id - The ID of the event to update.
+ * @param {Object} [req.file] - The file object.
+ * @param {string} req.file.filename - The filename of the uploaded image.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>}
+ */
 const updateEvent = async (req, res) => {
-    const { description, date, title, archived } = req.body;
-    const { id } = req.params;
+  const { description, date, title, archived } = req.body;
+  const { id } = req.params;
+  const event = await Event.findById(new mongoose.Types.ObjectId(id));
+
+  const image = req.file ? req.file.filename : null;
+
+  if (!event) {
+    rollBackFiles(req);
+    res.status(404).json({ errors: ["Evento não encontrado."] });
+    return;
+  }
+
+  if (title) {
+    event.title = title;
+  }
+  if (description) {
+    event.description = description;
+  }
+  if (date) {
+    event.date = date;
+  }
+  if (image) {
+    deleteFiles([getFilePath("images", event.image)]);
+    event.image = image;
+  }
+  if (archived) {
+    event.archived = archived;
+  }
+
+  await event.save();
+
+  res.status(200).json(event);
+};
+
+/**
+ * Deletes an event by ID.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} req.params - The request parameters.
+ * @param {string} req.params.id - The ID of the event to delete.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>}
+ */
+const deleteEvent = async (req, res) => {
+  const { id } = req.params;
+
+  try {
     const event = await Event.findById(new mongoose.Types.ObjectId(id));
 
-    const image = req.file ? req.file.filename : null;
+    if (!event) {
+      res.status(404).json({ errors: ["Evento não encontrada."] });
+      return;
+    }
+
+    deleteFiles(getFilesPaths({ images: [event.image] }));
+    await Event.findByIdAndDelete(event._id);
+
+    res.status(200).json({
+      id: event._id,
+      message: "Evento excluído com sucesso.",
+    });
+  } catch (error) {
+    res.status(404).json({ errors: ["Evento não encontrada"] });
+    return;
+  }
+};
+
+/**
+ * Searches for events by name.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} req.query - The request query parameters.
+ * @param {string} req.query.q - The search query.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>}
+ */
+const searchEvent = async (req, res) => {
+  const { q } = req.query;
+  const event = await Event.find({ name: new RegExp(q, "i") }).exec();
+  res.status(200).json(event);
+};
+
+/**
+ * Retrieves content for a list of events by their IDs.
+ *
+ * @param {Array<string>} events - The list of event IDs.
+ * @returns {Promise<Array<Object>>} - The list of events with content.
+ * @throws {Error} - If an event is not found.
+ */
+const getEventById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const event = await Event.findById(new mongoose.Types.ObjectId(id));
 
     if (!event) {
-        res.status(404).json({ errors: ["Evento não encontrado."] });
-        return;
-    };
-
-    if (title) {
-        event.title = title;
-    };
-    if (description) {
-        event.description = description;
-    };
-    if (date) {
-        event.date = date;
-    };
-    if (image) {
-        deleteFiles([getFilePath('images', 'events', event.image)]);
-        event.image = image;
-    };
-    if (archived) {
-        event.archived = archived;
-    };
-
-    await event.save();
+      res.status(404).json({ errors: ["Evento não encontrado"] });
+      return;
+    }
 
     res.status(200).json(event);
+  } catch (error) {
+    res.status(404).json({ errors: ["Evento não encontrado"] });
+    return;
+  }
 };
 
-const getEventById = async (req, res) => {
-    const { id } = req.params;
-
-    try {
-        const event = await Event.findById(new mongoose.Types.ObjectId(id));
-
-        if (!event) {
-            res.status(404).json({ errors: ["Evento não encontrado"] });
-            return;
-        };
-
-        res.status(200).json(event);
-    } catch (error) {
-        res.status(404).json({ errors: ["Evento não encontrado"] });
-        return;
-    }
-};
-
-const getEventContent = async (events) => {
-
-    const eventsWithContent = [];
-
-    for (const id of events) {
-        const event = await Event.findById(new mongoose.Types.ObjectId(id));
-
-        if (!event) {
-            throw new Error("Evento não encontrado");
-        }
-
-        eventsWithContent.push(event);
-    }
-
-    return eventsWithContent;
-}
-
-
+/**
+ * Retrieves all events, sorted by date in descending order.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>}
+ */
 const getAllEvents = async (req, res) => {
-    const event = await Event.find({}).sort([["date", -1]]).exec();
-    return res.status(200).json(event);
+  const event = await Event.find({})
+    .sort([["date", -1]])
+    .exec();
+  return res.status(200).json(event);
 };
 
-const searchEvent = async (req, res) => {
-    const { q } = req.query;
-    const event = await Event.find({ name: new RegExp(q, "i") }).exec();
-    res.status(200).json(event);
+/**
+ * Get the content of a list of events.
+ *
+ * @async
+ * @function getEventContent
+ * @param {Array<String>} events
+ * @returns {Promise<Array<Object>>} - The list of events with content.
+ * @throws {Error} - If an event is not found.
+ * @example
+ * const events = ["60e9e2c1e7f4f2f6a0f1c5b4", "60e9e2c1e7f4f2f6a0f1c5b5"];
+ */
+const getEventContent = async (events) => {
+  const eventsWithContent = [];
+
+  for (const id of events) {
+    const event = await Event.findById(new mongoose.Types.ObjectId(id));
+
+    if (!event) {
+      throw new Error("Evento não encontrado");
+    }
+
+    eventsWithContent.push(event);
+  }
+
+  return eventsWithContent;
 };
 
 module.exports = {
-    registerEvent,
-    deleteEvent,
-    updateEvent,
-    getEventById,
-    getAllEvents,
-    searchEvent,
-    getEventContent
+  registerEvent,
+  updateEvent,
+  deleteEvent,
+  searchEvent,
+  getEventById,
+  getAllEvents,
+  getEventContent,
 };

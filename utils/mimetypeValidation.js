@@ -6,8 +6,8 @@
  */
 
 const types = {
-  audio: ["mp4", "mpeg"],
-  image: ["jpeg", "png", "jpg"],
+  audio: ["mp4", "mpeg", "mp3"],
+  image: ["jpeg", "png", "jpg", "tiff"],
 };
 
 /**

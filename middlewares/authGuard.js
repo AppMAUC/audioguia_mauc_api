@@ -1,51 +1,33 @@
 const Admin = require("../models/Admin");
 const jwt = require("jsonwebtoken");
-const jwtSecret = process.env.JWT_PASS;
 
+/**
+ * Middleware to protect routes by verifying JWT token and checking admin privileges.
+ *
+ * @param {Object} req - Express request object.
+ * @param {Object} res - Express response object.
+ * @param {Function} next - Express next middleware function.
+ *
+ * @returns {void}
+ *
+ * @throws {Error} If the token is invalid or not provided, responds with a 401 status and an error message.
+ */
 const authGuard = async (req, res, next) => {
+  const token = req.headers["authorization"]?.split(" ")[1];
 
-    const authHeader = req.headers["authorization"];
-    const token = authHeader && authHeader.split(" ")[1];
+  // check if header has a token
+  if (!token) return res.status(401).json({ errors: ["Acesso negado"] });
 
-    // check if header has a token
-    if (!token) return res.status(401).json({ errors: ["Acesso negado!"] });
+  // check if token is valid
+  try {
+    const verified = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
-    // check if token is valid
-    try {
+    req.admin = await Admin.findById(verified._id).select("-password");
 
-        const verified = jwt.verify(token, jwtSecret);
-
-        req.admin = await Admin.findById(verified.id).select("-password");
-
-        next();
-    } catch (error) {
-        res.status(401).json({ errors: ["Token inválido!"] });
-    };
+    next();
+  } catch (error) {
+    res.status(401).json({ errors: ["Acesso Negado"] });
+  }
 };
 
-const verifyToken = async (req, res, next) => {
-
-    const authHeader = req.headers["authorization"];
-    const token = authHeader && authHeader.split(" ")[1];
-
-    // check if header has a token
-    if (!token) return res.status(401).json({ errors: ["Acesso negado!"] });
-
-    // check if token is valid
-    try {
-
-        const verified = jwt.verify(token, jwtSecret);
-
-        const admin = await Admin.findById(verified.id).select("-password");
-
-        if (!admin) {
-            res.status(401).json({ errors: ["Token inválido!"] });
-        }
-
-        next();
-    } catch (error) {
-        res.status(401).json({ errors: ["Token inválido"] });
-    };
-};
-
-module.exports = { verifyToken, authGuard };
+module.exports = { authGuard };

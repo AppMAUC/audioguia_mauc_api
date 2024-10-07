@@ -1,24 +1,55 @@
 const express = require("express");
-
 const router = express.Router();
 
 // Controller
-const { register, login, deleteAdmin, getCurrentAdmin, update, getAdminById, getAllAdmins, tokenIsValid } = require("../controllers/AdminController");
+const {
+  registerAdmin,
+  login,
+  deleteAdmin,
+  getCurrentAdmin,
+  searchAdmins,
+  updateAdmin,
+  getAdminById,
+  getAllAdmins,
+  logout,
+  refreshToken,
+} = require("../controllers/AdminController");
 
 // Middlewares
 const validate = require("../validations/handleValidation");
-const { adminCreateValidation, loginValidation, adminUpdateValidation } = require("../validations/adminValidations");
-const { authGuard, verifyToken } = require("../middlewares/authGuard")
-const { upload } = require("../middlewares/multer")
+const {
+  adminCreateValidation,
+  loginValidation,
+  adminUpdateValidation,
+} = require("../validations/adminValidations");
+const { authGuard } = require("../middlewares/authGuard");
+const { upload } = require("../middlewares/multer");
 
 // Routes
-router.post("/register", upload.single("image"), adminCreateValidation(), validate, register); // adicionar os midlewares
+router.post(
+  "/register",
+  upload.single("image"),
+  adminCreateValidation(),
+  validate,
+  registerAdmin
+);
 router.post("/login", loginValidation(), validate, login);
+router.post("/logout", authGuard, validate, logout);
+router.post("/refresh-token", refreshToken);
+
 router.delete("/:id", authGuard, validate, deleteAdmin);
-router.get("/", authGuard, getAllAdmins);
-router.get("/profile", authGuard, getCurrentAdmin);
-router.get("/token", verifyToken, tokenIsValid);
-router.get("/:id", authGuard, getAdminById);
-router.put("/", authGuard, upload.single("image"), adminUpdateValidation(), validate, update);
+
+router.get("/", authGuard, validate, getAllAdmins);
+router.get("/search", authGuard, validate, searchAdmins);
+router.get("/profile", authGuard, validate, getCurrentAdmin);
+router.get("/:id", authGuard, validate, getAdminById);
+router.put(
+  "/",
+  authGuard,
+  upload.single("image"),
+  adminUpdateValidation(),
+  validate,
+  updateAdmin
+);
 
 module.exports = router;
