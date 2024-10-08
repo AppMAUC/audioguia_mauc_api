@@ -4,6 +4,7 @@ const {
   deleteFiles,
   getFilesPaths,
   getFilePath,
+  rollBackFiles,
 } = require("../utils/deleteFiles");
 
 /**
@@ -50,6 +51,7 @@ const registerExposition = async (req, res) => {
 
   // if exposition was created successfully, return the token
   if (!newExposition) {
+    rollBackFiles(req)
     res
       .status(422)
       .json({ errors: ["Houve um erro, por favor tente mais tarde"] });
@@ -95,6 +97,7 @@ const updateExposition = async (req, res) => {
 
   // Check if exposition exists
   if (!exposition) {
+    rollBackFiles(req)
     res.status(404).json({ errors: ["Exposição não encontrada."] });
     return;
   }

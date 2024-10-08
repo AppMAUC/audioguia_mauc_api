@@ -30,6 +30,8 @@ const validate = (req, res, next) => {
   rollBackFiles(req);
 
   return res.status(422).json({
+    status: 422,
+    message: "Validation error",
     errors: extractedErros,
   });
 };

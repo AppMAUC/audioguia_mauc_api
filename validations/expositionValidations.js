@@ -136,7 +136,7 @@ const expositionUpdateValidation = () => {
         if (fileExists(getFilePath("images", "expositions", value))) {
           return true;
         }
-        return mimeTypeValidation("image", req.files["image"]);
+        return mimeTypeValidation("image", req.file["image"]);
       })
       .withMessage("Envie apenas arquivos png ou jpg"),
   ];

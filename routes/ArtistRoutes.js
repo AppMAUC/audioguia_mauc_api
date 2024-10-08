@@ -19,15 +19,15 @@ const {
 } = require("../validations/artistValidations");
 const { authGuard } = require("../middlewares/authGuard");
 const { genericUpload } = require("../middlewares/multer");
-
+const fields = [
+  { name: "image", maxCount: 1 },
+  { name: "audioGuia", maxCount: 2 },
+];
 // Routes
 router.post(
   "/",
   authGuard,
-  genericUpload([
-    { name: "image", maxCount: 1 },
-    { name: "audioGuia", maxCount: 2 },
-  ]),
+  genericUpload(fields),
   artistCreateValidation(),
   validate,
   registerArtist
@@ -42,10 +42,7 @@ router.get("/:id", getArtistById);
 router.put(
   "/:id",
   authGuard,
-  genericUpload([
-    { name: "image", maxCount: 1 },
-    { name: "audioGuia", maxCount: 2 },
-  ]),
+  genericUpload(fields),
   artistUpdateValidation(),
   validate,
   updateArtist

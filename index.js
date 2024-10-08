@@ -13,6 +13,8 @@
 
 //initial config
 require("dotenv").config();
+// DB connection
+require("./config/db.js");
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
@@ -20,6 +22,7 @@ const path = require("path");
 const port = process.env.PORT;
 const router = require("./routes/Router.js");
 const morgan = require("morgan");
+const handleError = require("./middlewares/handleError.js");
 const app = express();
 //Config JSON and form data responses
 app.use(morgan("dev"));
@@ -36,8 +39,8 @@ app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
 //routes
 app.use(router);
 
-// DB connection
-require("./config/db.js");
+// Error handling
+app.use(handleError);
 
 // port config
 app.listen(port, () => {
