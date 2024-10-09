@@ -7,7 +7,6 @@ const {
   getFilePath,
   parseFileName,
   createElements,
-  rollBackFiles,
 } = require("../utils/deleteFiles");
 
 /**
@@ -27,52 +26,57 @@ const {
  * @param {Object} res - The response object.
  * @returns {Promise<void>}
  */
-const registerArtWork = async (req, res) => {
-  const { title, description, author, suport, year, dimension } = req.body;
+const registerArtWork = async (req, res, next) => {
+  try {
+    const { title, description, author, suport, year, dimension } = req.body;
 
-  const image =
-    req.files && req.files["image"]
-      ? req.files["image"][0].filename
-      : req.file
-      ? req.file.filename
-      : null;
-  const audioDesc =
-    req.files && req.files["audioDesc"]
-      ? getFileNames(req.files["audioDesc"])
-      : req.file
-      ? req.file.filename
-      : null;
-  const audioGuia =
-    req.files && req.files["audioGuia"]
-      ? getFileNames(req.files["audioGuia"])
-      : req.file
-      ? req.file.filename
-      : null;
-  const archived = false;
+    const image =
+      req.files && req.files["image"]
+        ? req.files["image"][0].filename
+        : req.file
+        ? req.file.filename
+        : null;
+    const audioDesc =
+      req.files && req.files["audioDesc"]
+        ? getFileNames(req.files["audioDesc"])
+        : req.file
+        ? req.file.filename
+        : null;
+    const audioGuia =
+      req.files && req.files["audioGuia"]
+        ? getFileNames(req.files["audioGuia"])
+        : req.file
+        ? req.file.filename
+        : null;
+    const archived = false;
 
-  const newArtWork = await ArtWork.create({
-    title,
-    image,
-    description,
-    audioDesc,
-    audioGuia,
-    author,
-    suport,
-    year,
-    dimension,
-    archived,
-  });
+    const newArtWork = await ArtWork.create({
+      title,
+      image,
+      description,
+      audioDesc,
+      audioGuia,
+      author,
+      suport,
+      year,
+      dimension,
+      archived,
+    });
 
-  // if artwork was created successfully, return the token
-  if (!newArtWork) {
-    rollBackFiles(req);
-    res
-      .status(422)
-      .json({ errors: ["Houve um erro, por favor tente mais tarde"] });
-    return;
+    // if artwork was created successfully, return the token
+    if (!newArtWork) {
+      const error = new Error("Houve um erro, por favor tente mais tarde");
+      error.statusCode = 500;
+      throw error;
+    }
+
+    res.status(201).json({
+      _id: newArtWork._id,
+      message: "Obra de Arte cadastrada com sucesso.",
+    });
+  } catch (error) {
+    next(error);
   }
-
-  res.status(201).json(newArtWork);
 };
 
 /**
@@ -95,123 +99,131 @@ const registerArtWork = async (req, res) => {
  * @param {Object} res - The response object.
  * @returns {Promise<void>}
  */
-const updateArtWork = async (req, res) => {
-  const { title, description, author, suport, year, dimension, archived } =
-    req.body;
-  const { id } = req.params;
-  const artWork = await ArtWork.findById(new mongoose.Types.ObjectId(id));
+const updateArtWork = async (req, res, next) => {
+  try {
+    const { title, description, author, suport, year, dimension, archived } =
+      req.body;
+    const { id } = req.params;
+    const artWork = await ArtWork.findById(new mongoose.Types.ObjectId(id));
 
-  const image =
-    req.files && req.files["image"]
-      ? req.files["image"][0].filename
-      : req.file
-      ? req.file
-      : null;
-  const audioDesc =
-    req.files && req.files["audioDesc"]
-      ? getFileNames(req.files["audioDesc"])
-      : req.file
-      ? req.file
-      : null;
-  const audioGuia =
-    req.files && req.files["audioGuia"]
-      ? getFileNames(req.files["audioGuia"])
-      : req.file
-      ? req.file
-      : null;
+    const image =
+      req.files && req.files["image"]
+        ? req.files["image"][0].filename
+        : req.file
+        ? req.file
+        : null;
+    const audioDesc =
+      req.files && req.files["audioDesc"]
+        ? getFileNames(req.files["audioDesc"])
+        : req.file
+        ? req.file
+        : null;
+    const audioGuia =
+      req.files && req.files["audioGuia"]
+        ? getFileNames(req.files["audioGuia"])
+        : req.file
+        ? req.file
+        : null;
 
-  // Check if artwork exists
-  if (!artWork) {
-    rollBackFiles(req);
-    res.status(404).json({ errors: ["Obra de Arte não encontrada."] });
-    return;
-  }
-
-  if (title) {
-    artWork.title = title;
-  }
-  if (description) {
-    artWork.description = description;
-  }
-  if (audioDesc) {
-    let data = artWork.audioDesc;
-
-    if (audioDesc.length > 1) {
-      data = audioDesc;
-      deleteFiles(getFilesPaths({ audios: artWork.audioDesc }, "artworks"));
+    // Check if artwork exists
+    if (!artWork) {
+      const error = new Error("Obra de Arte não encontrada.");
+      error.statusCode = 404;
+      throw error;
     }
 
-    // Veio um arquivo de áudio e nenhum existente
-    if (audioDesc.length === 1 && !req.body.audioDesc) {
-      deleteFiles(getFilesPaths({ audios: artWork.audioDesc }));
-      data = audioDesc;
+    if (title) {
+      artWork.title = title;
+    }
+    if (description) {
+      artWork.description = description;
+    }
+    if (audioDesc) {
+      let data = artWork.audioDesc;
+
+      if (audioDesc.length > 1) {
+        data = audioDesc;
+        deleteFiles(getFilesPaths({ audios: artWork.audioDesc }, "artworks"));
+      }
+
+      // Veio um arquivo de áudio e nenhum existente
+      if (audioDesc.length === 1 && !req.body.audioDesc) {
+        deleteFiles(getFilesPaths({ audios: artWork.audioDesc }));
+        data = audioDesc;
+      }
+
+      if (audioDesc && req.body.audioDesc) {
+        const { audioDesc: previousAudioDesc } = req.body;
+        const paths = getFilesPaths({ audios: artWork.audioDesc }, "artworks");
+        const { language } = parseFileName(previousAudioDesc);
+
+        const oldAudio = paths.filter((path) => !path.includes(language));
+
+        deleteFiles(oldAudio);
+
+        data = [...audioDesc, previousAudioDesc];
+      }
+
+      artWork.audioDesc = data;
+    }
+    if (audioGuia) {
+      let data = artWork.audioGuia;
+
+      if (audioGuia.length > 1) {
+        data = audioGuia;
+        deleteFiles(getFilesPaths({ audios: artWork.audioGuia }));
+      }
+
+      // Veio um arquivo de áudio e nenhum existente
+      if (audioGuia.length === 1 && !req.body.audioGuia) {
+        deleteFiles(getFilesPaths({ audios: artWork.audioGuia }));
+        data = audioGuia;
+      }
+
+      if (audioGuia && req.body.audioGuia) {
+        const { audioGuia: previousAudioGuia } = req.body;
+        const paths = getFilesPaths({ audios: artWork.audioGuia });
+        const { language } = parseFileName(previousAudioGuia);
+
+        const oldAudio = paths.filter((path) => !path.includes(language));
+
+        deleteFiles(oldAudio);
+
+        data = [...audioGuia, previousAudioGuia];
+      }
+
+      artWork.audioGuia = data;
+    }
+    if (author) {
+      artWork.author = author;
+    }
+    if (suport) {
+      artWork.suport = suport;
+    }
+    if (year) {
+      artWork.year = year;
+    }
+    if (dimension) {
+      artWork.dimension = dimension;
+    }
+    if (image) {
+      deleteFiles([getFilePath("images", artWork.image)]);
+      artWork.image = image;
+    }
+    if (archived) {
+      artWork.archived = archived;
     }
 
-    if (audioDesc && req.body.audioDesc) {
-      const { audioDesc: previousAudioDesc } = req.body;
-      const paths = getFilesPaths({ audios: artWork.audioDesc }, "artworks");
-      const { language } = parseFileName(previousAudioDesc);
+    await artWork.save();
 
-      const oldAudio = paths.filter((path) => !path.includes(language));
-
-      deleteFiles(oldAudio);
-
-      data = [...audioDesc, previousAudioDesc];
-    }
-
-    artWork.audioDesc = data;
+    res.status(200).json({
+      _id: artWork._id,
+      data: artWork,
+      message: "Obra de Arte atualizada com sucesso.",
+    });
+  } catch (error) {
+    next(error);
   }
-  if (audioGuia) {
-    let data = artWork.audioGuia;
-
-    if (audioGuia.length > 1) {
-      data = audioGuia;
-      deleteFiles(getFilesPaths({ audios: artWork.audioGuia }));
-    }
-
-    // Veio um arquivo de áudio e nenhum existente
-    if (audioGuia.length === 1 && !req.body.audioGuia) {
-      deleteFiles(getFilesPaths({ audios: artWork.audioGuia }));
-      data = audioGuia;
-    }
-
-    if (audioGuia && req.body.audioGuia) {
-      const { audioGuia: previousAudioGuia } = req.body;
-      const paths = getFilesPaths({ audios: artWork.audioGuia });
-      const { language } = parseFileName(previousAudioGuia);
-
-      const oldAudio = paths.filter((path) => !path.includes(language));
-
-      deleteFiles(oldAudio);
-
-      data = [...audioGuia, previousAudioGuia];
-    }
-
-    artWork.audioGuia = data;
-  }
-  if (author) {
-    artWork.author = author;
-  }
-  if (suport) {
-    artWork.suport = suport;
-  }
-  if (year) {
-    artWork.year = year;
-  }
-  if (dimension) {
-    artWork.dimension = dimension;
-  }
-  if (image) {
-    deleteFiles([getFilePath("images", artWork.image)]);
-    artWork.image = image;
-  }
-  if (archived) {
-    artWork.archived = archived;
-  }
-
-  await artWork.save();
-
-  res.status(200).json(artWork);
 };
 
 /**
@@ -222,16 +234,16 @@ const updateArtWork = async (req, res) => {
  * @param {Object} res - The response object.
  * @returns {Promise<void>}
  */
-const deleteArtWork = async (req, res) => {
-  const { id } = req.params;
-
+const deleteArtWork = async (req, res, next) => {
   try {
+    const { id } = req.params;
     const artWork = await ArtWork.findById(new mongoose.Types.ObjectId(id));
 
     // Check if artWork exists
     if (!artWork) {
-      res.status(404).json({ errors: ["Obra não encontrada."] });
-      return;
+      const error = new Error("Obra não encontrada.");
+      error.statusCode = 404;
+      throw error;
     }
     deleteFiles(
       getFilesPaths(
@@ -245,13 +257,11 @@ const deleteArtWork = async (req, res) => {
     await ArtWork.findByIdAndDelete(artWork._id);
 
     res.status(200).json({
-      id: artWork._id,
+      _id: artWork._id,
       message: "Obra excluída com sucesso.",
     });
   } catch (error) {
-    console.log(error);
-    res.status(404).json({ errors: ["Obra não encontrada"] });
-    return;
+    next(error);
   }
 };
 
@@ -282,22 +292,21 @@ const searchArtWork = async (req, res) => {
  * @param {Object} res - The response object.
  * @returns {Promise<void>}
  */
-const getArtWorkById = async (req, res) => {
-  const { id } = req.params;
-
+const getArtWorkById = async (req, res, next) => {
   try {
+    const { id } = req.params;
     const artWork = await ArtWork.findById(new mongoose.Types.ObjectId(id));
 
     // Check if artWork exists
     if (!artWork) {
-      res.status(404).json({ errors: ["Obra não encontrada"] });
-      return;
+      const error = new Error("Obra não encontrada.");
+      error.statusCode = 404;
+      throw error;
     }
 
     res.status(200).json(artWork);
   } catch (error) {
-    res.status(404).json({ errors: ["Obra não encontrada"] });
-    return;
+    next(error);
   }
 };
 

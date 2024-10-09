@@ -4,7 +4,7 @@ const { getEventContent } = require("./EventController");
 
 /**
  * Registers a new timeline.
- * 
+ *
  * @async
  * @function registerTimeLine
  * @param {Object} req - The request object.
@@ -15,28 +15,34 @@ const { getEventContent } = require("./EventController");
  * @param {Object} res - The response object.
  * @returns {Promise<void>}
  */
-const registerTimeLine = async (req, res) => {
-  const { title, description, events } = req.body;
+const registerTimeLine = async (req, res, next) => {
+  try {
+    const { title, description, events } = req.body;
 
-  const newTimeLine = await TimeLine.create({
-    title,
-    description,
-    events,
-  });
+    const newTimeLine = await TimeLine.create({
+      title,
+      description,
+      events,
+    });
 
-  if (!newTimeLine) {
-    res
-      .status(422)
-      .json({ errors: ["Houve um erro, por favor tente mais tarde"] });
-    return;
+    if (!newTimeLine) {
+      const error = new Error("Houve um erro, por favor tente mais tarde");
+      error.statusCode = 500;
+      throw error;
+    }
+
+    res.status(201).json({
+      _id: newTimeLine._id,
+      message: "Linha do tempo criada com sucesso.",
+    });
+  } catch (error) {
+    next(error);
   }
-
-  res.status(201).json(newTimeLine);
 };
 
 /**
  * Updates an existing timeline.
- * 
+ *
  * @async
  * @function updateTimeLine
  * @param {Object} req - The request object.
@@ -49,16 +55,16 @@ const registerTimeLine = async (req, res) => {
  * @param {Object} res - The response object.
  * @returns {Promise<void>}
  */
-const updateTimeLine = async (req, res) => {
-  const { id } = req.params;
-
+const updateTimeLine = async (req, res, next) => {
   try {
+    const { id } = req.params;
     const { title, description, events } = req.body;
     const timeLine = await TimeLine.findById(new mongoose.Types.ObjectId(id));
 
     if (!timeLine) {
-      res.status(404).json({ errors: ["Linha do tempo não encontrada."] });
-      return;
+      const error = new Error("Linha do tempo não encontrada.");
+      error.statusCode = 404;
+      throw error;
     }
 
     if (title) {
@@ -73,16 +79,19 @@ const updateTimeLine = async (req, res) => {
 
     await timeLine.save();
 
-    res.status(202).json(timeLine);
+    res.status(202).json({
+      _id: timeLine._id,
+      data: timeLine,
+      message: "Linha do tempo atualizada com sucesso.",
+    });
   } catch (error) {
-    res.status(404).json({ errors: ["Linha do tempo não encontrada."] });
-    return;
+    next(error);
   }
 };
 
 /**
  * Deletes an existing timeline.
- * 
+ *
  * @async
  * @function deleteTimeLine
  * @param {Object} req - The request object.
@@ -91,32 +100,32 @@ const updateTimeLine = async (req, res) => {
  * @param {Object} res - The response object.
  * @returns {Promise<void>}
  */
-const deleteTimeLine = async (req, res) => {
+const deleteTimeLine = async (req, res, next) => {
   const { id } = req.params;
 
   try {
     const timeLine = await TimeLine.findById(new mongoose.Types.ObjectId(id));
 
     if (!timeLine) {
-      res.status(404).json({ errors: ["Linha do tempo não encontrada."] });
-      return;
+      const error = new Error("Linha do tempo não encontrada.");
+      error.statusCode = 404;
+      throw error;
     }
 
     await TimeLine.findByIdAndDelete(timeLine._id);
 
     res.status(200).json({
-      id: timeLine._id,
+      _id: timeLine._id,
       message: "Linha do tempo excluída com sucesso.",
     });
   } catch (error) {
-    res.status(404).json({ errors: ["Linha do Tempo não encontrada"] });
-    return;
+    next(error);
   }
 };
 
 /**
  * Searches for timelines by name.
- * 
+ *
  * @async
  * @function searchTimeLine
  * @param {Object} req - The request object.
@@ -133,7 +142,7 @@ const searchTimeLine = async (req, res) => {
 
 /**
  * Retrieves a timeline by its ID.
- * 
+ *
  * @async
  * @function getTimeLineById
  * @param {Object} req - The request object.
@@ -142,27 +151,26 @@ const searchTimeLine = async (req, res) => {
  * @param {Object} res - The response object.
  * @returns {Promise<void>}
  */
-const getTimeLineById = async (req, res) => {
-  const { id } = req.params;
-
+const getTimeLineById = async (req, res, next) => {
   try {
+    const { id } = req.params;
     const timeLine = await TimeLine.findById(new mongoose.Types.ObjectId(id));
 
     if (!timeLine) {
-      res.status(404).json({ errors: ["Linha do tempo não encontrada"] });
-      return;
+      const error = new Error("Linha do tempo não encontrada.");
+      error.statusCode = 404;
+      throw error;
     }
 
     res.status(200).json(timeLine);
   } catch (error) {
-    res.status(404).json({ errors: ["Linha do tempo não encontrada"] });
-    return;
+    next(error);
   }
 };
 
 /**
  * Retrieves all timelines.
- * 
+ *
  * @async
  * @function getAllTimeLines
  * @param {Object} req - The request object.
@@ -178,7 +186,7 @@ const getAllTimeLines = async (req, res) => {
 
 /**
  * Retrieves a timeline with its content by its ID.
- * 
+ *
  * @async
  * @function getTimeLineWithContent
  * @param {Object} req - The request object.
@@ -187,15 +195,15 @@ const getAllTimeLines = async (req, res) => {
  * @param {Object} res - The response object.
  * @returns {Promise<void>}
  */
-const getTimeLineWithContent = async (req, res) => {
-  const { id } = req.params;
-
+const getTimeLineWithContent = async (req, res, next) => {
   try {
+    const { id } = req.params;
     const timeLine = await TimeLine.findById(new mongoose.Types.ObjectId(id));
 
     if (!timeLine) {
-      res.status(404).json({ errors: ["Linha do tempo não encontrada"] });
-      return;
+      const error = new Error("Linha do tempo não encontrada.");
+      error.statusCode = 404;
+      throw error;
     }
 
     const events = await getEventContent(timeLine.events);
@@ -207,18 +215,16 @@ const getTimeLineWithContent = async (req, res) => {
     };
 
     if (!timeLineWithContent) {
-      res
-        .status(404)
-        .json({
-          errors: ["Houve um erro no servidor, tente novamente mais tarde."],
-        });
-      return;
+      const error = new Error(
+        "Houve um erro ao buscar o conteúdo da linha do tempo."
+      );
+      error.statusCode = 500;
+      throw error;
     }
 
     res.status(200).json(timeLineWithContent);
   } catch (error) {
-    res.status(404).json({ errors: ["Linha do tempo não encontrada"] });
-    return;
+    next(error);
   }
 };
 

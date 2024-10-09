@@ -1,7 +1,5 @@
 const { validationResult } = require("express-validator");
-const {
-  rollBackFiles,
-} = require("../utils/deleteFiles");
+const { rollBackFiles } = require("../utils/deleteFiles");
 /**
  * Middleware function to handle validation results from express-validator.
  *
@@ -16,24 +14,24 @@ const {
 const validate = (req, res, next) => {
   const errors = validationResult(req);
 
-  if (errors.isEmpty()) {
-    return next();
+  if (!errors.isEmpty()) {
+    // Como o mullter está sendo chamado antes das validações do express-validator, os arquivos são salvos no disco antes de serem validados.
+    // Por isso, é necessário deletar os arquivos que foram salvos no servidor antes de retornar o erro.
+    rollBackFiles(req);
+    return res.status(400).json({
+      statusCode: 400,
+      message: "Validation Error",
+      errors: errors.array().map((err) => {
+        console.log(err);
+        return {
+          field: err.path,
+          message: err.msg,
+        };
+      }),
+    });
   }
 
-  const extractedErros = [];
-
-  errors.array().map((err) => extractedErros.push(err.msg));
-
-
-  // Como o mullter está sendo chamado antes das validações do express-validator, os arquivos são salvos no disco antes de serem validados.
-  // Por isso, é necessário deletar os arquivos que foram salvos no servidor antes de retornar o erro.
-  rollBackFiles(req);
-
-  return res.status(422).json({
-    status: 422,
-    message: "Validation error",
-    errors: extractedErros,
-  });
+  next();
 };
 
 module.exports = validate;

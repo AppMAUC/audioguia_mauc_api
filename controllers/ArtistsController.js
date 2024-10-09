@@ -7,7 +7,6 @@ const {
   getFilePath,
   createElements,
   parseFileName,
-  rollBackFiles,
 } = require("../utils/deleteFiles");
 
 /**
@@ -27,40 +26,45 @@ const {
  * @param {Object} res - Express response object.
  * @returns {Promise<void>}
  */
-const registerArtist = async (req, res) => {
-  const { name, description, birthDate, biography, artWorks } = req.body;
-  const image =
-    req.files && req.files["image"]
-      ? req.files["image"][0].filename
-      : req.file
-      ? req.file.filename
-      : null;
-  const audioGuia =
-    req.files && req.files["audioGuia"]
-      ? getFileNames(req.files["audioGuia"])
-      : req.file
-      ? req.file.filename
-      : null;
+const registerArtist = async (req, res, next) => {
+  try {
+    const { name, description, birthDate, biography, artWorks } = req.body;
+    const image =
+      req.files && req.files["image"]
+        ? req.files["image"][0].filename
+        : req.file
+        ? req.file.filename
+        : null;
+    const audioGuia =
+      req.files && req.files["audioGuia"]
+        ? getFileNames(req.files["audioGuia"])
+        : req.file
+        ? req.file.filename
+        : null;
 
-  const newArtist = await Artist.create({
-    name,
-    description,
-    biography,
-    birthDate,
-    image,
-    audioGuia,
-    artWorks,
-  });
+    const newArtist = await Artist.create({
+      name,
+      description,
+      biography,
+      birthDate,
+      image,
+      audioGuia,
+      artWorks,
+    });
 
-  if (!newArtist) {
-    rollBackFiles(req);
-    res
-      .status(422)
-      .json({ errors: ["Houve um erro, por favor tente mais tarde"] });
-    return;
+    if (!newArtist) {
+      const error = new Error("Houve um erro, por favor tente mais tarde");
+      error.statusCode = 500;
+      throw error;
+    }
+
+    res.status(201).json({
+      _id: newArtist._id,
+      message: "Artista cadastrado com sucesso.",
+    });
+  } catch (error) {
+    next(error);
   }
-
-  res.status(201).json(newArtist);
 };
 
 /**
@@ -82,82 +86,90 @@ const registerArtist = async (req, res) => {
  * @param {Object} res - Express response object.
  * @returns {Promise<void>}
  */
-const updateArtist = async (req, res) => {
-  const { name, description, birthDate, biography, artWorks } = req.body;
-  const { id } = req.params;
-  const artist = await Artist.findById(new mongoose.Types.ObjectId(id));
+const updateArtist = async (req, res, next) => {
+  try {
+    const { name, description, birthDate, biography, artWorks } = req.body;
+    const { id } = req.params;
+    const artist = await Artist.findById(new mongoose.Types.ObjectId(id));
 
-  const image =
-    req.files && req.files["image"]
-      ? req.files["image"][0].filename
-      : req.file
-      ? req.file.filename
-      : null;
-  const audioGuia =
-    req.files && req.files["audioGuia"]
-      ? getFileNames(req.files["audioGuia"])
-      : req.file
-      ? req.file.filename
-      : null;
+    const image =
+      req.files && req.files["image"]
+        ? req.files["image"][0].filename
+        : req.file
+        ? req.file.filename
+        : null;
+    const audioGuia =
+      req.files && req.files["audioGuia"]
+        ? getFileNames(req.files["audioGuia"])
+        : req.file
+        ? req.file.filename
+        : null;
 
-  if (!artist) {
-    rollBackFiles(req);
-    res.status(404).json({ errors: ["Artista não encontrado."] });
-    return;
-  }
-
-  if (name) {
-    artist.name = name;
-  }
-  if (description) {
-    artist.description = description;
-  }
-  if (birthDate) {
-    artist.birthDate = birthDate;
-  }
-  if (artWorks) {
-    artist.artWorks = artWorks;
-  }
-  if (biography) {
-    artist.biography = biography;
-  }
-  if (audioGuia) {
-    let data = artist.audioGuia;
-
-    // Vieram mais de um arquivo de audio
-    if (audioGuia.length > 1) {
-      data = audioGuia;
-      deleteFiles(getFilesPaths({ audios: artist.audioGuia }));
-    }
-    // Veio um arquivo de áudio e nenhum existente
-    if (audioGuia.length === 1 && !req.body.audioGuia) {
-      deleteFiles(getFilesPaths({ audios: artist.audioGuia }));
-      data = audioGuia;
+    if (!artist) {
+      const error = new Error("Artista não encontrado.");
+      error.statusCode = 404;
+      throw error;
     }
 
-    // Veio um arquivo de áudio e um existente
-    if (audioGuia && req.body.audioGuia) {
-      const { audioGuia: previousAudioGuia } = req.body;
-      const paths = getFilesPaths({ audios: artist.audioGuia });
-      const { language } = parseFileName(previousAudioGuia);
+    if (name) {
+      artist.name = name;
+    }
+    if (description) {
+      artist.description = description;
+    }
+    if (birthDate) {
+      artist.birthDate = birthDate;
+    }
+    if (artWorks) {
+      artist.artWorks = artWorks;
+    }
+    if (biography) {
+      artist.biography = biography;
+    }
+    if (audioGuia) {
+      let data = artist.audioGuia;
 
-      const oldAudio = paths.filter((path) => !path.includes(language));
+      // Vieram mais de um arquivo de audio
+      if (audioGuia.length > 1) {
+        data = audioGuia;
+        deleteFiles(getFilesPaths({ audios: artist.audioGuia }));
+      }
+      // Veio um arquivo de áudio e nenhum existente
+      if (audioGuia.length === 1 && !req.body.audioGuia) {
+        deleteFiles(getFilesPaths({ audios: artist.audioGuia }));
+        data = audioGuia;
+      }
 
-      deleteFiles(oldAudio);
+      // Veio um arquivo de áudio e um existente (string com o nome do existente)
+      if (audioGuia && req.body.audioGuia) {
+        const { audioGuia: previousAudioGuia } = req.body;
+        const paths = getFilesPaths({ audios: artist.audioGuia });
+        const { language } = parseFileName(previousAudioGuia);
 
-      data = [...audioGuia, previousAudioGuia];
+        const oldAudio = paths.filter((path) => !path.includes(language));
+
+        deleteFiles(oldAudio);
+
+        data = [...audioGuia, previousAudioGuia];
+      }
+
+      artist.audioGuia = data;
+    }
+    if (image) {
+      deleteFiles([getFilePath("images", artist.image)]);
+      artist.image = image;
     }
 
-    artist.audioGuia = data;
-  }
-  if (image) {
-    deleteFiles([getFilePath("images", artist.image)]);
-    artist.image = image;
-  }
+    await artist.save();
 
-  await artist.save();
-
-  res.status(200).json(artist);
+    res.status(200).json({
+      _id: artist._id,
+      data: artist,
+      message: "Artista atualizado com sucesso.",
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -171,15 +183,15 @@ const updateArtist = async (req, res) => {
  * @param {Object} res - Express response object.
  * @returns {Promise<void>}
  */
-const deleteArtist = async (req, res) => {
-  const { id } = req.params;
-
+const deleteArtist = async (req, res, next) => {
   try {
+    const { id } = req.params;
     const artist = await Artist.findById(new mongoose.Types.ObjectId(id));
 
     if (!artist) {
-      res.status(404).json({ errors: ["Artista não encontrado."] });
-      return;
+      const error = new Error("Artista não encontrado.");
+      error.statusCode = 404;
+      throw error;
     }
 
     deleteFiles(
@@ -189,12 +201,11 @@ const deleteArtist = async (req, res) => {
     await Artist.findByIdAndDelete(artist._id);
 
     res.status(200).json({
-      id: artist._id,
+      _id: artist._id,
       message: "Artista excluído com sucesso.",
     });
   } catch (error) {
-    res.status(404).json({ errors: ["Artista não encontrado"] });
-    return;
+    next(error);
   }
 };
 
@@ -226,22 +237,21 @@ const searchArtist = async (req, res) => {
  * @param {Object} res - Express response object.
  * @returns {Promise<void>}
  */
-const getArtistById = async (req, res) => {
-  const { id } = req.params;
-
+const getArtistById = async (req, res, next) => {
   try {
+    const { id } = req.params;
     const artist = await Artist.findById(new mongoose.Types.ObjectId(id));
 
     // Check if artWork exists
     if (!artist) {
-      res.status(404).json({ errors: ["Artista não encontrado"] });
-      return;
+      const error = new Error("Artista não encontrado.");
+      error.statusCode = 404;
+      throw error;
     }
 
     res.status(200).json(artist);
   } catch (error) {
-    res.status(404).json({ errors: ["Artista não encontrado"] });
-    return;
+    next(error);
   }
 };
 

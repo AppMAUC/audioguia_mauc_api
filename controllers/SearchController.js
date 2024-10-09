@@ -2,7 +2,7 @@ const Exposition = require("../models/Exposition");
 const ArtWork = require("../models/ArtWork");
 const Artist = require("../models/Artist");
 
-const searchGeneral = async (req, res) => {
+const searchGeneral = async (req, res, next) => {
   try {
     const query = req.query.q || ""; // Query de busca
     const page = parseInt(req.query.page) || 1; // Página atual (default 1)
@@ -55,10 +55,9 @@ const searchGeneral = async (req, res) => {
       data,
     };
 
-    res.json(pagination);
+    res.status(200).json(pagination);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Erro no servidor" });
+    next(error);
   }
 };
 

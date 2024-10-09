@@ -24,47 +24,53 @@ const { generateAccessToken, generateRefreshToken } = require("../utils/token");
  * @param {Object} res - Express response object.
  * @returns {Promise<void>}
  */
-const registerAdmin = async (req, res) => {
-  const { name, email, password, accessLevel } = req.body;
-  const image =
-    req.files && req.files["image"]
-      ? req.files["image"][0].filename
-      : req.file
-      ? req.file.filename
-      : null;
+const registerAdmin = async (req, res, next) => {
+  try {
+    const { name, email, password, accessLevel } = req.body;
 
-  // Check if admin exists
-  const admin = await Admin.findOne({ email });
-  if (admin) {
-    res.status(422).json({ errors: ["Por favor utilize outro email"] });
-    return;
+    const image =
+      req.files && req.files["image"]
+        ? req.files["image"][0].filename
+        : req.file
+        ? req.file.filename
+        : null;
+
+    // Check if admin exists
+    const admin = await Admin.findOne({ email });
+
+    if (admin) {
+      const error = new Error("Por favor utilize outro email");
+      error.statusCode = 422;
+      throw error;
+    }
+
+    // Generate password hash
+    const salt = await bcrypt.genSalt();
+    const passwordHash = await bcrypt.hash(password, salt);
+
+    // Create admin
+    const newAdmin = await Admin.create({
+      name,
+      email,
+      password: passwordHash,
+      accessLevel,
+      image,
+    });
+
+    // if admin was created successfully, return the token
+    if (!newAdmin) {
+      const error = new Error("Houve um erro, por favor tente mais tarde");
+      error.statusCode = 500;
+      throw error;
+    }
+
+    res.status(201).json({
+      _id: newAdmin._id,
+      message: "Administrador criado com sucesso, realize login para acessar.",
+    });
+  } catch (error) {
+    next(error);
   }
-
-  // Generate password hash
-  const salt = await bcrypt.genSalt();
-  const passwordHash = await bcrypt.hash(password, salt);
-
-  // Create admin
-  const newAdmin = await Admin.create({
-    name,
-    email,
-    password: passwordHash,
-    accessLevel,
-    image,
-  });
-
-  // if admin was created successfully, return the token
-  if (!newAdmin) {
-    res
-      .status(422)
-      .json({ errors: ["Houve um erro, por favor tente mais tarde"] });
-    return;
-  }
-
-  res.status(201).json({
-    _id: newAdmin._id,
-    message: "Administrador criado com sucesso, realize login para acessar.",
-  });
 };
 
 /**
@@ -81,43 +87,57 @@ const registerAdmin = async (req, res) => {
  * @param {Object} res - Express response object.
  * @returns {Promise<void>}
  */
-const updateAdmin = async (req, res) => {
-  const { name, password } = req.body;
+const updateAdmin = async (req, res, next) => {
+  try {
+    const { name, password } = req.body;
 
-  const image =
-    req.files && req.files["image"]
-      ? req.files["image"][0].filename
-      : req.file
-      ? req.file.filename
-      : null;
+    const image =
+      req.files && req.files["image"]
+        ? req.files["image"][0].filename
+        : req.file
+        ? req.file.filename
+        : null;
 
-  const reqAdmin = req.admin;
+    const reqAdmin = req.admin;
 
-  const admin = await Admin.findById(
-    new mongoose.Types.ObjectId(reqAdmin._id)
-  ).select("-password");
+    const admin = await Admin.findById(
+      new mongoose.Types.ObjectId(reqAdmin._id)
+    ).select("-password");
 
-  if (name) {
-    admin.name = name;
+    if (!admin) {
+      const error = new Error("Administrador não encontrado");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (name) {
+      admin.name = name;
+    }
+
+    if (password) {
+      const salt = await bcrypt.genSalt();
+      const passwordHash = await bcrypt.hash(password, salt);
+      admin.password = passwordHash;
+    }
+
+    if (image) {
+      deleteFiles([getFilePath("images", admin.image)]);
+      admin.image = image;
+    }
+
+    await admin.save();
+
+    const adminResponse = { ...admin._doc };
+    delete adminResponse.password;
+
+    res.status(200).json({
+      _id: admin._id,
+      data: adminResponse,
+      message: "Administrador atualizado com sucesso.",
+    });
+  } catch (error) {
+    next(error);
   }
-
-  if (password) {
-    const salt = await bcrypt.genSalt();
-    const passwordHash = await bcrypt.hash(password, salt);
-    admin.password = passwordHash;
-  }
-
-  if (image) {
-    deleteFiles([getFilePath("images", admin.image)]);
-    admin.image = image;
-  }
-
-  await admin.save();
-
-  const adminResponse = { ...admin._doc };
-  delete adminResponse.password;
-
-  res.status(200).json(adminResponse);
 };
 
 /**
@@ -131,33 +151,37 @@ const updateAdmin = async (req, res) => {
  * @param {Object} res - Express response object.
  * @returns {Promise<void>}
  */
-const deleteAdmin = async (req, res) => {
-  const { id } = req.params;
-  const adminRequest = req.admin;
+const deleteAdmin = async (req, res, next) => {
   try {
+    const { id } = req.params;
+    const adminRequest = req.admin;
+
     if (adminRequest.accessLevel != "1") {
-      res.status(403).json({
-        errors: ["Operação não autorizada para esse nível de acesso."],
-      });
-      return;
+      const error = new Error(
+        "Operação não autorizada para esse nível de acesso."
+      );
+      error.statusCode = 403;
+      throw error;
     }
+
     const admin = await Admin.findById(new mongoose.Types.ObjectId(id));
 
     if (!admin) {
-      res.status(404).json({ errors: ["Administrador não encontrada."] });
-      return;
+      const error = new Error("Administrador não encontrado");
+      error.statusCode = 404;
+      throw error;
     }
 
     deleteFiles(getFilesPaths({ images: [admin.image] }));
+
     await Admin.findByIdAndDelete(admin._id);
 
     res.status(200).json({
-      id: admin._id,
+      _id: admin._id,
       message: "Administrador excluído com sucesso.",
     });
   } catch (error) {
-    res.status(404).json({ errors: ["Administrador não encontrado"] });
-    return;
+    next(error);
   }
 };
 
@@ -198,24 +222,23 @@ const searchAdmins = async (req, res) => {
  * @param {Object} res - Express response object.
  * @returns {Promise<void>}
  */
-const getAdminById = async (req, res) => {
-  const { id } = req.params;
-
+const getAdminById = async (req, res, next) => {
   try {
+    const { id } = req.params;
     const admin = await Admin.findById(new mongoose.Types.ObjectId(id)).select(
       "-password"
     );
 
     // Check if admin exists
     if (!admin) {
-      res.status(404).json({ errors: ["Administrador não encontrado"] });
-      return;
+      const error = new Error("Administrador não encontrado");
+      error.statusCode = 404;
+      throw error;
     }
 
     res.status(200).json(admin);
   } catch (error) {
-    res.status(404).json({ errors: ["Administrador não encontrado"] });
-    return;
+    next(error);
   }
 };
 
@@ -261,41 +284,47 @@ const getCurrentAdmin = async (req, res) => {
  * @param {Object} res - Express response object.
  * @returns {Promise<void>}
  */
-const login = async (req, res) => {
-  const { email, password } = req.body;
+const login = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
 
-  const admin = await Admin.findOne({ email });
+    const admin = await Admin.findOne({ email });
 
-  // check if admin exists
-  if (!admin) {
-    res.status(404).json({ errors: ["Administrador não encontrado."] });
-    return;
+    // check if admin exists
+    if (!admin) {
+      const error = new Error("Administrador não encontrado");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    // check if password matches
+    if (!(await bcrypt.compare(password, admin.password))) {
+      const error = new Error("Login ou senha inválidos.");
+      error.statusCode = 422;
+      throw error;
+    }
+
+    const refreshToken = generateRefreshToken(admin._id, admin.email);
+    const accessToken = generateAccessToken(admin._id, admin.email);
+
+    admin.refreshToken = refreshToken;
+    await admin.save();
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    // return admin with token
+    res.status(201).json({
+      _id: admin._id,
+      token: accessToken,
+    });
+  } catch (error) {
+    next(error);
   }
-
-  // check if password matches
-  if (!(await bcrypt.compare(password, admin.password))) {
-    res.status(422).json({ errors: ["Administrador ou senha inválidos."] });
-    return;
-  }
-
-  const refreshToken = generateRefreshToken(admin._id, admin.email);
-  const accessToken = generateAccessToken(admin._id, admin.email);
-
-  admin.refreshToken = refreshToken;
-  await admin.save();
-
-  res.cookie("refreshToken", refreshToken, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "Strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
-
-  // return admin with token
-  res.status(201).json({
-    _id: admin._id,
-    token: accessToken,
-  });
 };
 
 /**
@@ -307,14 +336,24 @@ const login = async (req, res) => {
  * @param {Object} res - Express response object.
  * @returns {Promise<void>}
  */
-const logout = async (req, res) => {
-  const admin = await Admin.findOne(new mongoose.Types.ObjectId(req.admin._id));
-  if (!admin) return res.sendStatus(403);
+const logout = async (req, res, next) => {
+  try {
+    const admin = await Admin.findOne(
+      new mongoose.Types.ObjectId(req.admin._id)
+    );
+    if (!admin) {
+      const error = new Error("Administrador não encontrado");
+      error.statusCode = 404;
+      throw error;
+    }
 
-  admin.refreshToken = null;
-  await admin.save();
-  res.clearCookie("refreshToken");
-  res.sendStatus(204);
+    admin.refreshToken = null;
+    await admin.save();
+    res.clearCookie("refreshToken");
+    res.sendStatus(204);
+  } catch (error) {
+    next(error);
+  }
 };
 
 /**
@@ -327,23 +366,38 @@ const logout = async (req, res) => {
  * @param {Object} res - Express response object.
  * @returns {Promise<void>}
  */
-const refreshToken = async (req, res) => {
-  const refreshToken = req.cookies.refreshToken;
-  if (!refreshToken)
-    return res.status(401).json({ errors: "Token inexistente" });
+const refreshToken = async (req, res, next) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+      const error = new Error("Operação não autorizada");
+      error.statusCode = 401;
+      throw error;
+    }
 
-  const admin = await Admin.findOne({ refreshToken });
-  if (!admin)
-    return res
-      .status(403)
-      .json({ errors: "Token inválido ou sessão expirada" });
+    const admin = await Admin.findOne({ refreshToken });
+    if (!admin) {
+      const error = new Error("Sessão expirada");
+      error.statusCode = 403;
+      throw error;
+    }
 
-  jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
-    if (err || decoded.email !== admin.email)
-      return res.status(403).json({ errors: "Token inválido" });
-    const newAccessToken = generateAccessToken(admin._id);
-    res.status(200).json({ _id: decoded._id, token: newAccessToken });
-  });
+    jwt.verify(
+      refreshToken,
+      process.env.REFRESH_TOKEN_SECRET,
+      (err, decoded) => {
+        if (err || decoded.email !== admin.email) {
+          const error = new Error("Sessão inválida ou expirada");
+          error.statusCode = 403;
+          throw error;
+        }
+        const newAccessToken = generateAccessToken(admin._id);
+        res.status(200).json({ _id: decoded._id, token: newAccessToken });
+      }
+    );
+  } catch (error) {
+    next(error);
+  }
 };
 
 module.exports = {
