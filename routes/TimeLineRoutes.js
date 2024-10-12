@@ -9,7 +9,6 @@ const {
   searchTimeLine,
   getTimeLineById,
   getAllTimeLines,
-  getTimeLineWithContent,
 } = require("../controllers/TimeLineController");
 
 // Middlewares
@@ -33,7 +32,6 @@ router.delete("/:id", authGuard, validate, deleteTimeLine);
 
 router.get("/", getAllTimeLines);
 router.get("/search", searchTimeLine);
-router.get("/content/:id", getTimeLineWithContent);
 router.get("/:id", getTimeLineById);
 
 router.put(

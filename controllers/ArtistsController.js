@@ -8,6 +8,7 @@ const {
   createElements,
   parseFileName,
 } = require("../utils/deleteFiles");
+const { getAllWithPaginate } = require("../utils/paginate");
 
 /**
  * Registers a new artist.
@@ -17,7 +18,6 @@ const {
  * @param {Object} req - Express request object.
  * @param {Object} req.body - Request body containing artist details.
  * @param {string} req.body.name - Name of the artist.
- * @param {string} req.body.description - Description of the artist.
  * @param {string} req.body.birthDate - Birth date of the artist.
  * @param {string} req.body.biography - Biography of the artist.
  * @param {Object} req.files - Uploaded files.
@@ -28,7 +28,7 @@ const {
  */
 const registerArtist = async (req, res, next) => {
   try {
-    const { name, description, birthDate, biography, artWorks } = req.body;
+    const { name, birthDate, biography, artWorks } = req.body;
     const image =
       req.files && req.files["image"]
         ? req.files["image"][0].filename
@@ -44,7 +44,6 @@ const registerArtist = async (req, res, next) => {
 
     const newArtist = await Artist.create({
       name,
-      description,
       biography,
       birthDate,
       image,
@@ -75,7 +74,6 @@ const registerArtist = async (req, res, next) => {
  * @param {Object} req - Express request object.
  * @param {Object} req.body - Request body containing artist details.
  * @param {string} [req.body.name] - Name of the artist.
- * @param {string} [req.body.description] - Description of the artist.
  * @param {string} [req.body.birthDate] - Birth date of the artist.
  * @param {string} [req.body.biography] - Biography of the artist.
  * @param {Object} [req.files] - Uploaded files.
@@ -88,7 +86,7 @@ const registerArtist = async (req, res, next) => {
  */
 const updateArtist = async (req, res, next) => {
   try {
-    const { name, description, birthDate, biography, artWorks } = req.body;
+    const { name, birthDate, biography, artWorks } = req.body;
     const { id } = req.params;
     const artist = await Artist.findById(new mongoose.Types.ObjectId(id));
 
@@ -113,9 +111,6 @@ const updateArtist = async (req, res, next) => {
 
     if (name) {
       artist.name = name;
-    }
-    if (description) {
-      artist.description = description;
     }
     if (birthDate) {
       artist.birthDate = birthDate;
@@ -240,7 +235,9 @@ const searchArtist = async (req, res) => {
 const getArtistById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const artist = await Artist.findById(new mongoose.Types.ObjectId(id));
+    const artist = await Artist.findById(new mongoose.Types.ObjectId(id))
+      .populate("artWorks")
+      .exec();
 
     // Check if artWork exists
     if (!artist) {
@@ -265,11 +262,8 @@ const getArtistById = async (req, res, next) => {
  * @returns {Promise<void>}
  */
 const getAllArtists = async (req, res) => {
-  const artists = await Artist.find({})
-    .sort([["date", -1]])
-    .exec();
-
-  return res.status(200).json(artists);
+  const data = await getAllWithPaginate(Artist, req, [["date", -1]]);
+  return res.status(200).json(data);
 };
 
 module.exports = {

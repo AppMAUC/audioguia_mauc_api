@@ -27,7 +27,6 @@ const { generateAccessToken, generateRefreshToken } = require("../utils/token");
 const registerAdmin = async (req, res, next) => {
   try {
     const { name, email, password, accessLevel } = req.body;
-
     const image =
       req.files && req.files["image"]
         ? req.files["image"][0].filename
@@ -53,7 +52,7 @@ const registerAdmin = async (req, res, next) => {
       name,
       email,
       password: passwordHash,
-      accessLevel,
+      accessLevel: parseInt(accessLevel),
       image,
     });
 
@@ -129,6 +128,7 @@ const updateAdmin = async (req, res, next) => {
 
     const adminResponse = { ...admin._doc };
     delete adminResponse.password;
+    delete adminResponse.refreshToken;
 
     res.status(200).json({
       _id: admin._id,
@@ -154,16 +154,6 @@ const updateAdmin = async (req, res, next) => {
 const deleteAdmin = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const adminRequest = req.admin;
-
-    if (adminRequest.accessLevel != "1") {
-      const error = new Error(
-        "Operação não autorizada para esse nível de acesso."
-      );
-      error.statusCode = 403;
-      throw error;
-    }
-
     const admin = await Admin.findById(new mongoose.Types.ObjectId(id));
 
     if (!admin) {

@@ -5,6 +5,7 @@ const {
   getFilesPaths,
   getFilePath,
 } = require("../utils/deleteFiles");
+const { getAllWithPaginate } = require("../utils/paginate");
 
 /**
  * Registers a new exposition.
@@ -39,7 +40,7 @@ const registerExposition = async (req, res, next) => {
     // Create exposition
     const newExposition = await Exposition.create({
       title,
-      type,
+      type: parseInt(type),
       image,
       description,
       artWorks,
@@ -135,7 +136,7 @@ const updateExposition = async (req, res, next) => {
       exposition.dateStarts = dateStarts;
     }
     if (type) {
-      exposition.type = type;
+      exposition.type = parseInt(type);
     }
     if (image) {
       deleteFiles([getFilePath("images", exposition.image)]);
@@ -224,7 +225,9 @@ const getExpositionById = async (req, res, next) => {
     const { id } = req.params;
     const exposition = await Exposition.findById(
       new mongoose.Types.ObjectId(id)
-    );
+    )
+      .populate("artWorks")
+      .exec();
 
     // Check if exposition exists
     if (!exposition) {
@@ -246,10 +249,9 @@ const getExpositionById = async (req, res, next) => {
  * @returns {Promise<void>}
  */
 const getAllExpostitions = async (req, res) => {
-  const expositions = await Exposition.find({})
-    .sort([["createdAt", -1]])
-    .exec();
-
+  const expositions = await getAllWithPaginate(Exposition, req, [
+    ["dateEnds", -1],
+  ]);
   return res.status(200).json(expositions);
 };
 

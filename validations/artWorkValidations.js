@@ -1,7 +1,11 @@
 const { body } = require("express-validator");
 const { mimeTypeValidation } = require("../utils/mimeTypeValidation");
-const { fileExists, getFilePath } = require("../utils/deleteFiles");
-
+const {
+  fileExists,
+  getFilePath,
+  filesExists,
+} = require("../utils/deleteFiles");
+const { audioValidation } = require("../utils/audioValidation");
 /**
  * Validation rules for creating a new artwork entry.
  *
@@ -34,31 +38,43 @@ const artWorkCreateValidation = () => {
       .isLength({ min: 3 })
       .withMessage("O título precisa ter no mínimo três caracteres."),
     body("description").isString().withMessage("A descrição é obrigatória."),
-    body("author").isString().withMessage("O nome do autor é obrigatório"), // lembrar de colocar um checkbox para desconhecido - checkbox ativa desabled no campo mas preenche o json com "Autor Desconhecido ou Desconhecido"
-    body("suport").isString().withMessage("O suporte da obra é obrigatório"), // óleo sobre tela etc
-    body("year").isString().withMessage("O ano da obra é obrigatório"),
+    body("author").isString().withMessage("O nome do autor é obrigatório."),
+    body("suport").isString().withMessage("O suporte da obra é obrigatório."),
+    body("year").isString().withMessage("O ano da obra é obrigatório."),
     body("dimension")
       .isString()
-      .withMessage("As dimensões da obra são obrigatórias"), // 00 x 00    mm / cm / m
-    body("archived")
-      .optional()
-      .isBoolean()
-      .withMessage("O sistema deve saber o estado da obra"),
+      .withMessage("As dimensões da obra são obrigatórias."),
     body("image")
       .custom((value, { req }) => {
         return mimeTypeValidation("image", req.files["image"]);
       })
-      .withMessage("Envie apenas arquivos png ou jpg"),
+      .withMessage("Envie apenas arquivos png, jpg ou tif."),
     body("audioDesc")
       .custom((value, { req }) => {
-        return mimeTypeValidation("audio", req.files["audioDesc"]);
+        if (!mimeTypeValidation("audio", req.files["audioDesc"])) {
+          throw new Error("Envie apenas arquivos mp3 ou mp4.");
+        }
+
+        if (!filesExists(req.files["audioDesc"].map((file) => file.path))) {
+          throw new Error("Erro ao salvar os áudios no servidor.");
+        }
+
+        return true;
       })
-      .withMessage("Apenas arquivos mp3 ou mp4 são permitidos"),
+      .withMessage("Apenas arquivos mp3 ou mp4 são permitidos."),
     body("audioGuia")
       .custom((value, { req }) => {
-        return mimeTypeValidation("audio", req.files["audioGuia"]);
+        if (!mimeTypeValidation("audio", req.files["audioGuia"])) {
+          throw new Error("Envie apenas arquivos mp3 ou mp4.");
+        }
+
+        if (!filesExists(req.files["audioGuia"].map((file) => file.path))) {
+          throw new Error("Erro ao salvar os áudios no servidor.");
+        }
+
+        return true;
       })
-      .withMessage("Apenas arquivos mp3 ou mp4 são permitidos"),
+      .withMessage("Apenas arquivos mp3 ou mp4 são permitidos."),
   ];
 };
 
@@ -92,72 +108,36 @@ const artWorkUpdateValidation = () => {
       .optional()
       .isLength({ min: 3 })
       .withMessage("O título precisa ter no mínimo três caracteres."),
-    body("description").optional().isString().withMessage("Formato inválido"),
-    body("author").optional().isString().withMessage("Formato inválido"), // lembrar de colocar um checkbox para desconhecido - checkbox ativa desabled no campo mas preenche o json com "Autor Desconhecido ou Desconhecido"
-    body("suport").optional().isString().withMessage("Formato inválido"), // óleo sobre tela etc
-    body("year").optional().isString().withMessage("Formato inválido"), // lembrar de colocar um checkbox para desconhecido - checkbox ativa desabled no campo mas preenche o json com "Autor Desconhecido ou Desconhecido"
-    body("dimension").optional().isString().withMessage("Formato inválido"), // 00 x 00    mm / cm / m
+    body("description").optional().isString().withMessage("Formato inválido."),
+    body("author").optional().isString().withMessage("Formato inválido."), // lembrar de colocar um checkbox para desconhecido - checkbox ativa desabled no campo mas preenche o json com "Autor Desconhecido ou Desconhecido"
+    body("suport").optional().isString().withMessage("Formato inválido."), // óleo sobre tela etc
+    body("year").optional().isString().withMessage("Formato inválido."), // lembrar de colocar um checkbox para desconhecido - checkbox ativa desabled no campo mas preenche o json com "Autor Desconhecido ou Desconhecido"
+    body("dimension").optional().isString().withMessage("Formato inválido."), // 00 x 00    mm / cm / m
     body("archived")
       .optional()
       .isBoolean()
-      .withMessage("O sistema deve saber o estado da obra"),
+      .withMessage("O sistema deve saber o estado da obra."),
     body("image")
       .optional()
       .custom((value, { req }) => {
-        if (fileExists(getFilePath("images", "artworks", value))) {
+        if (fileExists(getFilePath("images", value))) {
           return true;
         }
         return mimeTypeValidation("image", req.files["image"]);
       })
-      .withMessage("Envie apenas arquivos png ou jpg"),
+      .withMessage("Envie apenas arquivos png, jpg ou tif."),
     body("audioDesc")
       .optional()
       .custom((value, { req }) => {
-        // Nesse caso apenas um áudio foi editado
-        if (value && req.files["audioDesc"]) {
-          return (
-            fileExists(getFilePath("audios", value)) &&
-            mimeTypeValidation("audio", req.files["audioDesc"])
-          );
-        }
-
-        // Nesse caso os dois áudios não foram editados
-        if (typeof value == "object") {
-          const audioExists = value.map((item) => {
-            return fileExists(getFilePath("audios", item));
-          });
-
-          return audioExists.includes(false) ? false : true;
-        }
-
-        // Nesse caso os dois audios foram editados
-        return mimeTypeValidation("audio", req.files["audioDesc"]);
+        return audioValidation(value, req.files["audioDesc"]);
       })
-      .withMessage("Apenas arquivos mp3 ou mp4 são permitidos"),
+      .withMessage("Apenas arquivos mp3 ou mp4 são permitidos."),
     body("audioGuia")
       .optional()
       .custom((value, { req }) => {
-        // Nesse caso apenas um áudio foi editado
-        if (value && req.files["audioGuia"]) {
-          return (
-            fileExists(getFilePath("audios", value)) &&
-            mimeTypeValidation("audio", req.files["audioGuia"])
-          );
-        }
-
-        // Nesse caso os dois áudios não foram editados
-        if (typeof value == "object") {
-          const audioExists = value.map((item) => {
-            return fileExists(getFilePath("audios", item));
-          });
-
-          return audioExists.includes(false) ? false : true;
-        }
-
-        // Nesse caso os dois audios foram editados
-        return mimeTypeValidation("audio", req.files["audioGuia"]);
+        return audioValidation(value, req.files["audioGuia"]);
       })
-      .withMessage("Apenas arquivos mp3 ou mp4 são permitidos"),
+      .withMessage("Apenas arquivos mp3 ou mp4 são permitidos."),
   ];
 };
 

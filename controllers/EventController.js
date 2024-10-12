@@ -192,33 +192,6 @@ const getAllEvents = async (req, res) => {
   return res.status(200).json(event);
 };
 
-/**
- * Get the content of a list of events.
- *
- * @async
- * @function getEventContent
- * @param {Array<String>} events
- * @returns {Promise<Array<Object>>} - The list of events with content.
- * @throws {Error} - If an event is not found.
- * @example
- * const events = ["60e9e2c1e7f4f2f6a0f1c5b4", "60e9e2c1e7f4f2f6a0f1c5b5"];
- */
-const getEventContent = async (events) => {
-  const eventsWithContent = [];
-  
-  for (const id of events) {
-    const event = await Event.findById(new mongoose.Types.ObjectId(id));
-
-    if (!event) {
-      throw new Error("Evento não encontrado");
-    }
-
-    eventsWithContent.push(event);
-  }
-
-  return eventsWithContent;
-};
-
 module.exports = {
   registerEvent,
   updateEvent,
@@ -226,5 +199,4 @@ module.exports = {
   searchEvent,
   getEventById,
   getAllEvents,
-  getEventContent,
 };

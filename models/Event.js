@@ -23,8 +23,8 @@ const { Schema } = mongoose;
  */
 const eventSchema = new Schema(
   {
-    image: String,
     title: String,
+    image: String, 
     description: String,
     date: Date,
     archived: Boolean,

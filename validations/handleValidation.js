@@ -22,7 +22,6 @@ const validate = (req, res, next) => {
       statusCode: 400,
       message: "Validation Error",
       errors: errors.array().map((err) => {
-        console.log(err);
         return {
           field: err.path,
           message: err.msg,

@@ -27,7 +27,11 @@ const adminSchema = new Schema(
     email: String,
     password: String,
     image: String,
-    accessLevel: String,
+    accessLevel: {
+      type: Number,
+      enum: [1, 2], // 1: Gerenciar administradores e conteúdo, 2: Somente conteúdo
+      required: true,
+    },
     refreshToken: String,
   },
   {

@@ -8,6 +8,7 @@ const {
   parseFileName,
   createElements,
 } = require("../utils/deleteFiles");
+const { getAllWithPaginate } = require("../utils/paginate");
 
 /**
  * Registers a new artwork.
@@ -317,9 +318,7 @@ const getArtWorkById = async (req, res, next) => {
  * @returns {Promise<void>}
  */
 const getAllArtWorks = async (req, res) => {
-  const artWorks = await ArtWork.find({})
-    .sort([["year", -1]])
-    .exec();
+  const artWorks = await getAllWithPaginate(ArtWork, req, [["title", 1]]);
   return res.status(200).json(artWorks);
 };
 

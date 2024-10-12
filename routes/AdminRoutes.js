@@ -24,10 +24,13 @@ const {
 } = require("../validations/adminValidations");
 const { authGuard } = require("../middlewares/authGuard");
 const { upload } = require("../middlewares/multer");
+const { checkAccessLevel } = require("../middlewares/checkAccessLevel");
 
 // Routes
 router.post(
   "/register",
+  authGuard,
+  checkAccessLevel(1),
   upload.single("image"),
   adminCreateValidation(),
   validate,
@@ -37,7 +40,7 @@ router.post("/login", loginValidation(), validate, login);
 router.post("/logout", authGuard, validate, logout);
 router.post("/refresh-token", refreshToken);
 
-router.delete("/:id", authGuard, validate, deleteAdmin);
+router.delete("/:id", authGuard, checkAccessLevel(1), validate, deleteAdmin);
 
 router.get("/", authGuard, validate, getAllAdmins);
 router.get("/search", authGuard, validate, searchAdmins);

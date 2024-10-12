@@ -10,7 +10,6 @@ const { Schema } = mongoose;
  * @typedef {Object} Artist
  * @property {string} image - URL or path to the artist's image.
  * @property {string} name - Name of the artist.
- * @property {string} description - Short description of the artist.
  * @property {string} biography - Detailed biography of the artist.
  * @property {Array} audioGuia - Array of audio descriptions related to the artist.
  * @property {Date} birthDate - Birth date of the artist.
@@ -24,10 +23,9 @@ const { Schema } = mongoose;
  */
 const artistSchema = new Schema(
   {
-    image: String,
     name: String,
-    artWorks: Array,
-    description: String,
+    image: String,
+    artWorks: [{ type: mongoose.Schema.Types.ObjectId, ref: "ArtWork" }],
     biography: String,
     audioGuia: Array,
     birthDate: Date,
@@ -41,7 +39,7 @@ const artistSchema = new Schema(
  * Create a text index on the name, description, and biography fields.
  * This allows for efficient text search queries on these fields.
  */
-artistSchema.index({ name: "text", description: "text", biography: "text" });
+artistSchema.index({ name: "text", biography: "text" });
 
 /**
  * Mongoose model for the Artist schema.

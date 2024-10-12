@@ -40,16 +40,6 @@ router.use("/api/events", require("./EventRoutes"));
 router.use("/api/timelines", require("./TimeLineRoutes"));
 
 router.get("/api/search", searchGeneral);
-router.get("/api/teste", (req, res, next) => {
-  try {
-    const error = new Error("testando handler");
-    error.statusCode = 404;
-    throw error;
-
-  } catch (error) {
-    next(error);
-  }
-});
 router.get("/", (req, res) => {
   res.json({ message: "API Working!" });
 });

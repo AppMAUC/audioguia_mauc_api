@@ -38,28 +38,33 @@ const adminCreateValidation = () => {
       .isString()
       .withMessage("A senha é obrigatória.")
       .isLength({ min: 5 })
-      .withMessage("O senha precisa ter no mínimo 5 caracteres."),
+      .withMessage("A senha precisa ter no mínimo 5 caracteres."),
     body("confirmPassword")
       .isString()
       .withMessage("A confirmação de senha é obrigatória.")
       .custom((value, { req }) => {
         if (value != req.body.password) {
-          throw new Error("As senhas não são iguais");
+          throw new Error("As senhas não são iguais.");
         }
         return true;
       }),
     body("accessLevel").custom((value) => {
-      const validAcess = [1, 2, "1", "2"];
+      const validAcess = ["1", "2"];
       if (!validAcess.includes(value)) {
-        throw new Error("Escolha um nível de acesso válido");
+        throw new Error("Escolha um nível de acesso válido.");
       }
       return true;
     }),
-    body("image")
-      .custom((value, { req }) => {
-        return mimeTypeValidation("image", [req.file]);
-      })
-      .withMessage("Envie apenas arquivos png ou jpg"),
+    body("image").custom((value, { req }) => {
+      if (!mimeTypeValidation("image", [req.file])) {
+        throw new Error("Envie apenas arquivos png, jpg ou tif.");
+      }
+      if (!fileExists(req.file.path)) {
+        throw new Error("Erro ao salvar a imagem no servidor.");
+      }
+
+      return true;
+    }),
   ];
 };
 
@@ -83,10 +88,10 @@ const loginValidation = () => {
   return [
     body("email")
       .isString()
-      .withMessage("O e-mail é obrigatório")
+      .withMessage("O e-mail é obrigatório.")
       .isEmail()
-      .withMessage("Insira um e-mail válido"),
-    body("password").isString().withMessage("A senha é obrigatória"),
+      .withMessage("Insira um e-mail válido."),
+    body("password").isString().withMessage("A senha é obrigatória."),
   ];
 };
 
@@ -111,11 +116,11 @@ const adminUpdateValidation = () => {
   return [
     body("name")
       .isLength({ min: 3 })
-      .withMessage("O nome precisa ter no mínimo 3 caracteres")
+      .withMessage("O nome precisa ter no mínimo 3 caracteres.")
       .optional(),
     body("password")
       .isLength({ min: 5 })
-      .withMessage("A senha precisa ter no mínimo 5 caracteres")
+      .withMessage("A senha precisa ter no mínimo 5 caracteres.")
       .optional(),
     body("image")
       .optional()
@@ -123,9 +128,11 @@ const adminUpdateValidation = () => {
         if (fileExists(getFilePath("images", value))) {
           return true;
         }
-        return mimeTypeValidation("image", req.files["image"]); // adm recebe file e não files
+        return (
+          mimeTypeValidation("image", [req.file]) && fileExists(req.file.path)
+        );
       })
-      .withMessage("Envie apenas arquivos png ou jpg"),
+      .withMessage("Envie apenas arquivos png, jpg ou tif."),
   ];
 };
 
@@ -134,3 +141,4 @@ module.exports = {
   loginValidation,
   adminUpdateValidation,
 };
+  

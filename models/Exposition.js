@@ -28,10 +28,14 @@ const { Schema } = mongoose;
 const expositionSchema = new Schema(
   {
     title: String,
-    type: String,
+    type: {
+      type: Number,
+      enum: [1, 2], // 1: Expo de longa duração , 2: Expo temporária ( ou curta duração)
+      required: true,
+    },
     image: String,
     description: String,
-    artWorks: Array,
+    artWorks: [{ type: mongoose.Schema.Types.ObjectId, ref: "ArtWork" }],
     place: String,
     dateStarts: Date,
     dateEnds: Date,

@@ -1,6 +1,5 @@
 const TimeLine = require("../models/TimeLine");
 const mongoose = require("mongoose");
-const { getEventContent } = require("./EventController");
 
 /**
  * Registers a new timeline.
@@ -154,7 +153,9 @@ const searchTimeLine = async (req, res) => {
 const getTimeLineById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const timeLine = await TimeLine.findById(new mongoose.Types.ObjectId(id));
+    const timeLine = await TimeLine.findById(new mongoose.Types.ObjectId(id))
+      .populate("events")
+      .exec();
 
     if (!timeLine) {
       const error = new Error("Linha do tempo não encontrada.");
@@ -195,38 +196,7 @@ const getAllTimeLines = async (req, res) => {
  * @param {Object} res - The response object.
  * @returns {Promise<void>}
  */
-const getTimeLineWithContent = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const timeLine = await TimeLine.findById(new mongoose.Types.ObjectId(id));
 
-    if (!timeLine) {
-      const error = new Error("Linha do tempo não encontrada.");
-      error.statusCode = 404;
-      throw error;
-    }
-
-    const events = await getEventContent(timeLine.events);
-
-    const timeLineWithContent = {
-      title: timeLine.title,
-      description: timeLine.description,
-      events: events,
-    };
-
-    if (!timeLineWithContent) {
-      const error = new Error(
-        "Houve um erro ao buscar o conteúdo da linha do tempo."
-      );
-      error.statusCode = 500;
-      throw error;
-    }
-
-    res.status(200).json(timeLineWithContent);
-  } catch (error) {
-    next(error);
-  }
-};
 
 module.exports = {
   registerTimeLine,
@@ -235,5 +205,4 @@ module.exports = {
   searchTimeLine,
   getTimeLineById,
   getAllTimeLines,
-  getTimeLineWithContent,
 };

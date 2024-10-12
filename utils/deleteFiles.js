@@ -48,6 +48,18 @@ const fileExists = (filePath, fileSystem = fs) => {
   }
 };
 
+
+/**
+ * Checks if all files in the provided file paths exist.
+ *
+ * @param {string[]} filePaths - An array of file paths to check.
+ * @param {Object} [fileSystem=fs] - The file system module to use for checking file existence.
+ * @returns {boolean} - Returns true if all files exist, otherwise false.
+ */
+const filesExists = (filePaths, fileSystem = fs) => {
+  return filePaths.every((filePath) => fileExists(filePath, fileSystem));
+};
+
 /**
  * Gets the full path of a specific file.
  *
@@ -181,4 +193,5 @@ module.exports = {
   parseFileName,
   getPathsFromFilesRequest,
   rollBackFiles,
+  filesExists,
 };

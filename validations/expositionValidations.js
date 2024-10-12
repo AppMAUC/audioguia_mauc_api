@@ -1,5 +1,6 @@
 const { body } = require("express-validator");
 const { mimeTypeValidation } = require("../utils/mimeTypeValidation");
+const { fileExists, getFilePath } = require("../utils/deleteFiles");
 
 /**
  * Validation rules for creating an exposition.
@@ -40,25 +41,23 @@ const expositionCreateValidation = () => {
     body("place").isString().withMessage("O local da exposição é obrigatório."),
     body("dateStarts").isDate().withMessage("Adicione uma data válida."),
     body("dateEnds").isDate().withMessage("Adicione uma data válida."),
-    body("type")
-      .isInt()
-      .withMessage("Adicione um tipo válido")
-      .custom((value) => {
-        const validAcess = [1, 2, "1", "2"];
-        if (!validAcess.includes(value)) {
-          throw new Error("Escolha um tipo válido");
-        }
-        return true;
-      }),
-    body("archived")
-      .optional()
-      .isBoolean()
-      .withMessage("O sistema deve saber o estado da obra"),
+    body("type").custom((value) => {
+      const types = ["1", "2"];
+      if (!types.includes(value)) {
+        throw new Error("Escolha um tipo válido.");
+      }
+      return true;
+    }),
     body("image")
       .custom((value, { req }) => {
-        return mimeTypeValidation("image", [req.file]);
+        if (fileExists(getFilePath("images", value))) {
+          return true;
+        }
+        return (
+          mimeTypeValidation("image", [req.file]) && fileExists(req.file.path)
+        );
       })
-      .withMessage("Envie apenas arquivos png ou jpg"),
+      .withMessage("Envie apenas arquivos png, jpg ou tif."),
   ];
 };
 
@@ -118,18 +117,18 @@ const expositionUpdateValidation = () => {
     body("type")
       .optional()
       .isInt()
-      .withMessage("Adicione um tipo válido")
+      .withMessage("Adicione um tipo válido.")
       .custom((value) => {
         const validAcess = [1, 2, "1", "2"];
         if (!validAcess.includes(value)) {
-          throw new Error("Escolha um tipo válido");
+          throw new Error("Escolha um tipo válido.");
         }
         return true;
       }),
     body("archived")
       .optional()
       .isBoolean()
-      .withMessage("O sistema deve saber o estado da obra"),
+      .withMessage("O sistema deve saber o estado da obra."),
     body("image")
       .optional()
       .custom((value, { req }) => {
@@ -138,7 +137,7 @@ const expositionUpdateValidation = () => {
         }
         return mimeTypeValidation("image", req.file["image"]);
       })
-      .withMessage("Envie apenas arquivos png ou jpg"),
+      .withMessage("Envie apenas arquivos png, jpg ou tif."),
   ];
 };
 

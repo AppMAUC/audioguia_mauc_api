@@ -1,13 +1,17 @@
 const { body } = require("express-validator");
 const { mimeTypeValidation } = require("../utils/mimeTypeValidation");
-const { fileExists, getFilePath } = require("../utils/deleteFiles");
+const {
+  fileExists,
+  getFilePath,
+  filesExists,
+} = require("../utils/deleteFiles");
+const { audioValidation } = require("../utils/audioValidation");
 
 /**
  * Validation middleware for creating an artist.
  *
  * Validates the following fields:
  * - `name`: Must be a string and is required.
- * - `description`: Must be a string and is required.
  * - `birthDate`: Must be a valid date and is required.
  * - `biography`: Must be a string and is required.
  * - `image`: Must be a valid image file (png or jpg).
@@ -25,28 +29,38 @@ const { fileExists, getFilePath } = require("../utils/deleteFiles");
 const artistCreateValidation = () => {
   return [
     body("name").isString().withMessage("O nome do artista é obrigatório."),
-    body("description").isString().withMessage("A descrição é obrigatória"),
     body("birthDate")
       .isDate()
-      .withMessage("A data de nascimento do artista é obrigatória"),
+      .withMessage("A data de nascimento do artista é obrigatória."),
     body("biography")
       .isString()
-      .withMessage("A biografia do artista é obrigatória"),
-    body("image")
-      .custom((value, { req }) => {
-        return mimeTypeValidation("image", req.files["image"]);
-      })
-      .withMessage("Envie apenas arquivos png ou jpg"),
+      .withMessage("A biografia do artista é obrigatória."),
+    body("image").custom((value, { req }) => {
+      if (!mimeTypeValidation("image", req.files["image"])) {
+        throw new Error("Envie apenas arquivos png, jpg ou tif.");
+      }
+
+      if (!fileExists(req.files["image"][0].path)) {
+        throw new Error("Erro ao salvar a imagem no servidor.");
+      }
+
+      return true;
+    }),
     body("artWorks")
+      .optional()
       .isArray()
-      .withMessage("Formato de dado inválido.")
-      .isLength({ min: 1 })
-      .withMessage("A exposição precisa ter mais de uma obra."),
-    body("audioGuia")
-      .custom((value, { req }) => {
-        return mimeTypeValidation("audio", req.files["audioGuia"]);
-      })
-      .withMessage("Apenas arquivos mp3 ou mp4 são permitidos"),
+      .withMessage("Formato de dado inválido."),
+    body("audioGuia").custom((value, { req }) => {
+      if (!mimeTypeValidation("audio", req.files["audioGuia"])) {
+        throw new Error("Envie apenas arquivos mp3 ou mp4.");
+      }
+
+      if (!filesExists(req.files["audioGuia"].map((file) => file.path))) {
+        throw new Error("Erro ao salvar os áudios no servidor.");
+      }
+
+      return true;
+    }),
   ];
 };
 
@@ -55,7 +69,6 @@ const artistCreateValidation = () => {
  *
  * Validates the following fields (all optional):
  * - `name`: Must be a string.
- * - `description`: Must be a string.
  * - `birthDate`: Must be a valid date.
  * - `biography`: Must be a string.
  * - `image`: Must be a valid image file (png or jpg) or an existing file.
@@ -76,57 +89,33 @@ const artistUpdateValidation = () => {
       .optional()
       .isString()
       .withMessage("O nome do artista é obrigatório."),
-    body("description")
-      .optional()
-      .isString()
-      .withMessage("A descrição é obrigatória"),
     body("birthDate")
       .optional()
       .isDate()
-      .withMessage("A data de nascimento do artista é obrigatória"),
+      .withMessage("A data de nascimento do artista é obrigatória."),
     body("artWorks")
       .optional()
       .isArray()
-      .withMessage("Formato de dado inválido.")
-      .isLength({ min: 1 })
-      .withMessage("A exposição precisa ter mais de uma obra."),
+      .withMessage("Formato de dado inválido."),
     body("biography")
       .optional()
       .isString()
-      .withMessage("A biografia do artista é obrigatória"),
+      .withMessage("A biografia do artista é obrigatória."),
     body("image")
       .optional()
       .custom((value, { req }) => {
-        if (fileExists(getFilePath("images", "artworks", value))) {
+        if (fileExists(getFilePath("images", value))) {
           return true;
         }
         return mimeTypeValidation("image", req.files["image"]);
       })
-      .withMessage("Envie apenas arquivos png ou jpg"),
+      .withMessage("Envie apenas arquivos png, jpg ou tif."),
     body("audioGuia")
       .optional()
       .custom((value, { req }) => {
-        // If the audioGuia is a string, it means that the audioGuia is an existing file
-        if (value && req.files["audioGuia"]) {
-          return (
-            fileExists(getFilePath("audios", value)) &&
-            mimeTypeValidation("audio", req.files["audioGuia"])
-          );
-        }
-        // If the audioGuia is an array, it means that the audioGuia is a new file
-        if (typeof value == "object") {
-          // Check if all files exist
-          const audioExists = value.map((item) => {
-            return fileExists(getFilePath("audios", item));
-          });
-
-          // Check if all files are valid
-          return audioExists.includes(false) ? false : true;
-        }
-
-        return mimeTypeValidation("audio", req.files["audioGuia"]);
+        return audioValidation(value, req.files["audioGuia"]);
       })
-      .withMessage("Apenas arquivos mp3 ou mp4 são permitidos"),
+      .withMessage("Apenas arquivos mp3 ou mp4 são permitidos."),
   ];
 };
 

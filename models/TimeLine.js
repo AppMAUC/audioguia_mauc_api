@@ -23,7 +23,7 @@ const timeLineSchema = new Schema(
   {
     title: String,
     description: String,
-    events: Array,
+    events: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event" }],
   },
   {
     timestamps: true,
