@@ -48,7 +48,6 @@ const fileExists = (filePath, fileSystem = fs) => {
   }
 };
 
-
 /**
  * Checks if all files in the provided file paths exist.
  *
@@ -73,10 +72,18 @@ const getFilePath = (fileType, fileName) => {
   const { category, type, language } = parseFileName(fileName);
 
   if (fileType === "audios") {
-    return path.join("uploads", fileType, category, type, language, fileName);
+    return path.join(
+      "tmp",
+      "uploads",
+      fileType,
+      category,
+      type,
+      language,
+      fileName
+    );
   }
 
-  return path.join("uploads", fileType, category, fileName);
+  return path.join("tmp", "uploads", fileType, category, fileName);
 };
 
 /**

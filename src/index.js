@@ -31,10 +31,10 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Solve Cors
-app.use(cors({ credentials: true, origin: "http://localhost:5173" }));
+app.use(cors({ credentials: true, origin: process.env.CLIENT_URL }));
 
 // Upload directory
-app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
+app.use("/files", express.static(path.join(__dirname, "..", "tmp", "uploads")));
 
 //routes
 app.use(router);

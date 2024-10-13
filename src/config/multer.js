@@ -36,7 +36,7 @@ const createStorage = (destinationFn, filenameFn) =>
 const defaultDestination = (req, file, cb) => {
   cb(
     null,
-    `uploads/${getAdvancedPath(
+    `tmp/uploads/${getAdvancedPath(
       file.fieldname,
       req.baseUrl,
       file.originalname
@@ -102,7 +102,7 @@ const createDynamicStorage = (destinations, filenames) =>
  * dinamicDestination(req, file) // 'uploads/audios/artworks/guia/br/'
  */
 const dynamicDestination = (req, file) => {
-  return `uploads/${getAdvancedPath(
+  return `tmp/uploads/${getAdvancedPath(
     file.fieldname,
     req.baseUrl,
     file.originalname

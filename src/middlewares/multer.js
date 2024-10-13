@@ -1,8 +1,11 @@
+const path = require("path");
+
 /**
  * Middleware for handling file uploads using multer.
  *
  * @module middlewares/multer
  */
+const dest = path.resolve(__dirname, "..", "..", "tmp", "uploads");
 
 const multer = require("multer");
 const {
@@ -16,7 +19,11 @@ const {
  *
  * @type {multer.Instance}
  */
-const upload = multer({ storage: defaultStorage, fileFilter: defaultFilter });
+const upload = multer({
+  dest: dest,
+  storage: defaultStorage,
+  fileFilter: defaultFilter,
+});
 
 /**
  * Combined upload middleware configured with combined storage and default file filter.
@@ -25,6 +32,7 @@ const upload = multer({ storage: defaultStorage, fileFilter: defaultFilter });
  * @type {multer.Instance}
  */
 const combinedUpload = multer({
+  dest: dest,
   storage: combinedStorage,
   fileFilter: defaultFilter,
 }).fields([
