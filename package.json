@@ -8,7 +8,7 @@
     "start": "node ./src/index.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "victoremanuel.vetn@alu.ufc.br",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",
