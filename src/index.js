@@ -31,7 +31,11 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Solve Cors
-app.use(cors({ credentials: true, origin: process.env.CLIENT_URL }));
+if (process.env.NODE_ENV === "production") {
+  app.use(cors({ credentials: true, origin: process.env.CLIENT_URL }));
+} else {
+  app.use(cors());
+}
 
 // Upload directory
 app.use("/files", express.static(path.join(__dirname, "..", "tmp", "uploads")));
