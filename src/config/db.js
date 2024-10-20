@@ -16,11 +16,10 @@ const db = process.env.DB_NAME;
  * @throws Will log an error message if the connection fails.
  * 
  */
-
 const conn = async () => {
     try {
         const dbConn = await mongoose.connect(`mongodb+srv://${dbUser}:${dbPassword}@apicluster.35r3x0a.mongodb.net/${db}?retryWrites=true&w=majority&appName=APICluster`);
-        console.log('Conectou com o banco');
+        console.log(`Conectou com o banco ${db}`);
         return dbConn;
     } catch (error) {
         console.log(error);
