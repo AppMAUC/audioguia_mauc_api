@@ -5,6 +5,12 @@
 
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
+const {
+  deleteEngine,
+  getPathbyUrl,
+  getOldFilePaths,
+} = require("../utils/deleteFiles");
+const { bucket } = require("../config/firebase");
 
 /**
  * Schema for an artwork.
@@ -29,10 +35,31 @@ const { Schema } = mongoose;
 const artWorkSchema = new Schema(
   {
     title: String,
-    image: String,
+    image: {
+      name: String,
+      size: Number,
+      key: String,
+      url: String,
+    },
     description: String,
-    audioDesc: Array,
-    audioGuia: Array,
+    audioDesc: [
+      {
+        lang: String,
+        name: String,
+        size: Number,
+        key: String,
+        url: String,
+      },
+    ],
+    audioGuia: [
+      {
+        lang: String,
+        name: String,
+        size: Number,
+        key: String,
+        url: String,
+      },
+    ],
     author: String,
     suport: String,
     year: String,
@@ -41,6 +68,73 @@ const artWorkSchema = new Schema(
   },
   {
     timestamps: true,
+  }
+);
+
+artWorkSchema.pre(
+  "deleteOne",
+  { document: true, query: false },
+  async function (next) {
+    const imageFilePath = getPathbyUrl(this.image.url);
+
+    const audioDescFiles = this.audioDesc?.map((audio) =>
+      getPathbyUrl(audio.url)
+    );
+    const audioGuiaFiles = this.audioGuia?.map((audio) =>
+      getPathbyUrl(audio.url)
+    );
+
+    const filesToDelete = [];
+
+    if (audioDescFiles && audioDescFiles.length) {
+      filesToDelete.push(...audioDescFiles);
+    }
+
+    if (audioGuiaFiles && audioGuiaFiles.length) {
+      filesToDelete.push(...audioGuiaFiles);
+    }
+
+    if (imageFilePath) {
+      filesToDelete.push(imageFilePath);
+    }
+
+    await deleteEngine[process.env.STORAGE_TYPE](filesToDelete);
+  }
+);
+
+artWorkSchema.pre(
+  "updateOne",
+  { document: true, query: false },
+  async function (next) {
+    const oldArtwork = await ArtWork.findById(this._id);
+    const filesToDelete = [];
+
+    if (this.image.url !== oldArtwork.image.url) {
+      // if the image has changed, delete the old image
+      filesToDelete.push(getPathbyUrl(oldArtwork.image.url));
+    }
+
+    // Check if the audio files have changed
+    if (
+      JSON.stringify(oldArtwork.audioGuia) !== JSON.stringify(this.audioGuia)
+    ) {
+      // if the audio files have changed, delete the old audio files
+      const urls = getOldFilePaths(oldArtwork.audioGuia, this.audioGuia);
+      const pathsToDelete = urls.map((url) => getPathbyUrl(url));
+      filesToDelete.push(...pathsToDelete);
+    }
+
+    if (
+      JSON.stringify(oldArtwork.audioDesc) !== JSON.stringify(this.audioDesc)
+    ) {
+      const urls = getOldFilePaths(oldArtwork.audioDesc, this.audioDesc);
+      const pathsToDelete = urls.map((url) => getPathbyUrl(url));
+      filesToDelete.push(...pathsToDelete);
+    }
+
+    if (filesToDelete.length > 0) {
+      await deleteEngine[process.env.STORAGE_TYPE](filesToDelete);
+    }
   }
 );
 

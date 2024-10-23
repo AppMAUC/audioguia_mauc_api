@@ -1,17 +1,15 @@
-const path = require("path");
-
 /**
  * Middleware for handling file uploads using multer.
  *
  * @module middlewares/multer
  */
-const dest = path.resolve(__dirname, "..", "..", "tmp", "uploads");
-
 const multer = require("multer");
 const {
   defaultStorage,
   defaultFilter,
   combinedStorage,
+  dest,
+  limits,
 } = require("../config/multer");
 
 /**
@@ -20,26 +18,11 @@ const {
  * @type {multer.Instance}
  */
 const upload = multer({
-  dest: dest,
+  dest,
   storage: defaultStorage,
   fileFilter: defaultFilter,
+  limits: limits,
 });
-
-/**
- * Combined upload middleware configured with combined storage and default file filter.
- * Allows uploading of multiple file fields.
- *
- * @type {multer.Instance}
- */
-const combinedUpload = multer({
-  dest: dest,
-  storage: combinedStorage,
-  fileFilter: defaultFilter,
-}).fields([
-  { name: "image", maxCount: 1 },
-  { name: "audioDesc", maxCount: 2 },
-  { name: "audioGuia", maxCount: 2 },
-]);
 
 /**
  * Generic upload middleware that allows specifying custom fields.
@@ -57,11 +40,11 @@ const genericUpload = (fields) => {
   return multer({
     storage: combinedStorage,
     fileFilter: defaultFilter,
+    limits: limits,
   }).fields(fields);
 };
 
 module.exports = {
   upload,
-  combinedUpload,
   genericUpload,
 };

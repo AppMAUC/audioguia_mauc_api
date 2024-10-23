@@ -5,6 +5,7 @@
 
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
+const { getPathbyUrl, deleteEngine } = require("../utils/deleteFiles");
 
 /**
  * @typedef {Object} Event
@@ -24,7 +25,12 @@ const { Schema } = mongoose;
 const eventSchema = new Schema(
   {
     title: String,
-    image: String, 
+    image: {
+      name: String,
+      size: Number,
+      key: String,
+      url: String,
+    },
     description: String,
     date: Date,
     archived: Boolean,
@@ -34,6 +40,39 @@ const eventSchema = new Schema(
   }
 );
 
+eventSchema.pre(
+  "deleteOne",
+  { document: true, query: false },
+  async function (next) {
+    const imageFilePath = getPathbyUrl(this.image.url);
+
+    const filesToDelete = [];
+
+    if (imageFilePath) {
+      filesToDelete.push(imageFilePath);
+    }
+
+    await deleteEngine[process.env.STORAGE_TYPE](filesToDelete);
+  }
+);
+
+eventSchema.pre(
+  "updateOne",
+  { document: true, query: false },
+  async function (next) {
+    const oldEvent = await Event.findById(this._id);
+    const filesToDelete = [];
+
+    if (this.image.url !== oldEvent.image.url) {
+      // if the image has changed, delete the old image
+      filesToDelete.push(getPathbyUrl(oldEvent.image.url));
+    }
+
+    if (filesToDelete.length > 0) {
+      await deleteEngine[process.env.STORAGE_TYPE](filesToDelete);
+    }
+  }
+);
 /**
  * Create a text index on the title and description fields.
  * This allows for efficient text search queries on these fields.

@@ -185,19 +185,6 @@ const getAllTimeLines = async (req, res) => {
   return res.status(200).json(timeLine);
 };
 
-/**
- * Retrieves a timeline with its content by its ID.
- *
- * @async
- * @function getTimeLineWithContent
- * @param {Object} req - The request object.
- * @param {Object} req.params - The request parameters.
- * @param {string} req.params.id - The ID of the timeline to retrieve.
- * @param {Object} res - The response object.
- * @returns {Promise<void>}
- */
-
-
 module.exports = {
   registerTimeLine,
   updateTimeLine,

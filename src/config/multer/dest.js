@@ -1,6 +1,12 @@
 const path = require("path");
 const { getAdvancedPath } = require("../../utils/multerFunctions");
 
+/**
+ * An object containing base paths for different storage options.
+ * 
+ * @property {string} local - The base path for local storage.
+ * @property {string} firebase - The base path for Firebase storage.
+ */
 const basePath = {
   local: "tmp/uploads/",
   firebase: "uploads/",
@@ -39,6 +45,7 @@ const defaultDestination = (req, file, cb) => {
   );
 };
 
+// Destination directory for file uploads.
 const dest = path.resolve(__dirname, "..", "..", "..", "tmp", "uploads");
 
 module.exports = {

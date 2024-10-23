@@ -1,7 +1,8 @@
 const { body } = require("express-validator");
-const { mimeTypeValidation } = require("../utils/mimeTypeValidation");
-const { fileExists, getFilePath } = require("../utils/deleteFiles");
-
+const {
+  fileCreateValidation,
+  fileUpdateValidation,
+} = require("../utils/handleFileValidations");
 /**
  * Validation rules for creating an exposition.
  *
@@ -48,16 +49,13 @@ const expositionCreateValidation = () => {
       }
       return true;
     }),
-    body("image")
-      .custom((value, { req }) => {
-        if (fileExists(getFilePath("images", value))) {
-          return true;
-        }
-        return (
-          mimeTypeValidation("image", [req.file]) && fileExists(req.file.path)
-        );
-      })
-      .withMessage("Envie apenas arquivos png, jpg ou tif."),
+    body("image").custom((value, { req }) => {
+      try {
+        return fileCreateValidation([req.file], "image", "png, jpg ou tif");
+      } catch (error) {
+        throw error;
+      }
+    }),
   ];
 };
 
@@ -132,12 +130,17 @@ const expositionUpdateValidation = () => {
     body("image")
       .optional()
       .custom((value, { req }) => {
-        if (fileExists(getFilePath("images", "expositions", value))) {
-          return true;
+        try {
+          return fileUpdateValidation(
+            value,
+            [req.file],
+            "image",
+            "png, jpg ou tif"
+          );
+        } catch (error) {
+          throw error;
         }
-        return mimeTypeValidation("image", req.file["image"]);
-      })
-      .withMessage("Envie apenas arquivos png, jpg ou tif."),
+      }),
   ];
 };
 

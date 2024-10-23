@@ -1,13 +1,9 @@
 const Admin = require("../models/Admin");
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
-const {
-  deleteFiles,
-  getFilesPaths,
-  getFilePath,
-} = require("../utils/deleteFiles");
 const jwt = require("jsonwebtoken");
 const { generateAccessToken, generateRefreshToken } = require("../utils/token");
+const { getFileObject } = require("../utils/multerFunctions");
 
 /**
  * Registers a new admin.
@@ -27,12 +23,12 @@ const { generateAccessToken, generateRefreshToken } = require("../utils/token");
 const registerAdmin = async (req, res, next) => {
   try {
     const { name, email, password, accessLevel } = req.body;
-    const image =
-      req.files && req.files["image"]
-        ? req.files["image"][0].filename
-        : req.file
-        ? req.file.filename
-        : null;
+    const { image: a } = req.files;
+    const image = a
+      ? getFileObject(a)[0]
+      : req.file
+      ? getFileObject([req.file])[0]
+      : null;
 
     // Check if admin exists
     const admin = await Admin.findOne({ email });
@@ -89,13 +85,12 @@ const registerAdmin = async (req, res, next) => {
 const updateAdmin = async (req, res, next) => {
   try {
     const { name, password } = req.body;
-
-    const image =
-      req.files && req.files["image"]
-        ? req.files["image"][0].filename
-        : req.file
-        ? req.file.filename
-        : null;
+    const { image: a } = req.files;
+    const image = a
+      ? getFileObject(a)[0]
+      : req.file
+      ? getFileObject([req.file])[0]
+      : null;
 
     const reqAdmin = req.admin;
 
@@ -120,11 +115,14 @@ const updateAdmin = async (req, res, next) => {
     }
 
     if (image) {
-      deleteFiles([getFilePath("images", admin.image)]);
       admin.image = image;
     }
 
-    await admin.save();
+    await admin.updateOne({
+      name: admin.name,
+      password: admin.password,
+      image: admin.image,
+    });
 
     const adminResponse = { ...admin._doc };
     delete adminResponse.password;
@@ -162,9 +160,7 @@ const deleteAdmin = async (req, res, next) => {
       throw error;
     }
 
-    deleteFiles(getFilesPaths({ images: [admin.image] }));
-
-    await Admin.findByIdAndDelete(admin._id);
+    await admin.deleteOne();
 
     res.status(200).json({
       _id: admin._id,

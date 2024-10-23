@@ -5,6 +5,11 @@
 
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
+const {
+  deleteEngine,
+  getPathbyUrl,
+  getOldFilePaths,
+} = require("../utils/deleteFiles");
 
 /**
  * @typedef {Object} Artist
@@ -24,14 +29,79 @@ const { Schema } = mongoose;
 const artistSchema = new Schema(
   {
     name: String,
-    image: String,
+    image: {
+      name: String,
+      size: Number,
+      key: String,
+      url: String,
+    },
     artWorks: [{ type: mongoose.Schema.Types.ObjectId, ref: "ArtWork" }],
     biography: String,
-    audioGuia: Array,
+    audioGuia: [
+      {
+        lang: String,
+        name: String,
+        size: Number,
+        key: String,
+        url: String,
+      },
+    ],
     birthDate: Date,
   },
   {
     timestamps: true,
+  }
+);
+
+artistSchema.pre(
+  "deleteOne",
+  { document: true, query: false },
+  async function (next) {
+    const imageFilePath = getPathbyUrl(this.image.url);
+
+    const audioGuiaFiles = this.audioGuia?.map((audio) =>
+      getPathbyUrl(audio.url)
+    );
+
+    const filesToDelete = [];
+
+    if (audioGuiaFiles && audioGuiaFiles.length) {
+      filesToDelete.push(...audioGuiaFiles);
+    }
+
+    if (imageFilePath) {
+      filesToDelete.push(imageFilePath);
+    }
+
+    await deleteEngine[process.env.STORAGE_TYPE](filesToDelete);
+  }
+);
+
+artistSchema.pre(
+  "updateOne",
+  { document: true, query: false },
+  async function (next) {
+    const oldArtist = await Artist.findById(this._id);
+    const filesToDelete = [];
+
+    if (this.image.url !== oldArtist.image.url) {
+      // if the image has changed, delete the old image
+      filesToDelete.push(getPathbyUrl(oldArtist.image.url));
+    }
+
+    // Check if the audio files have changed
+    if (
+      JSON.stringify(oldArtist.audioGuia) !== JSON.stringify(this.audioGuia)
+    ) {
+      // if the audio files have changed, delete the old audio files
+      const urls = getOldFilePaths(oldArtist.audioGuia, this.audioGuia);
+      const pathsToDelete = urls.map((url) => getPathbyUrl(url));
+      filesToDelete.push(...pathsToDelete);
+    }
+
+    if (filesToDelete.length > 0) {
+      await deleteEngine[process.env.STORAGE_TYPE](filesToDelete);
+    }
   }
 );
 

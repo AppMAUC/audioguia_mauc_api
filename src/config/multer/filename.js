@@ -35,12 +35,12 @@ const defaultFilename = (req, file, cb) => {
 const audioFilename = (req, file) => {
   const lang = file.originalname.match(regex.audioLangRegex);
   file.key = `${getURLPath(req.baseUrl)}-${getAudioType(file.fieldname)}${
-    lang[0]
+    lang ? lang[0] : "-br"
   }-${Math.floor(100000 + Math.random() * 900000)}${Date.now()}${path.extname(
     file.originalname
   )}`;
-  
-  file.lang = lang[1];
+
+  file.lang = lang ? lang[1] : "br";
   return file.key;
 };
 

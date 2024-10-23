@@ -1,11 +1,7 @@
 const Exposition = require("../models/Exposition");
 const mongoose = require("mongoose");
-const {
-  deleteFiles,
-  getFilesPaths,
-  getFilePath,
-} = require("../utils/deleteFiles");
 const { getAllWithPaginate } = require("../utils/paginate");
+const { getFileObject } = require("../utils/multerFunctions");
 
 /**
  * Registers a new exposition.
@@ -28,13 +24,12 @@ const registerExposition = async (req, res, next) => {
   try {
     const { title, description, type, artWorks, place, dateStarts, dateEnds } =
       req.body;
-
-    const image =
-      req.files && req.files["image"]
-        ? req.files["image"][0].filename
-        : req.file
-        ? req.file.filename
-        : null;
+    const { image: a } = req.files;
+    const image = a
+      ? getFileObject(a)[0]
+      : req.file
+      ? getFileObject([req.file])[0]
+      : null;
     const archived = false;
 
     // Create exposition
@@ -110,12 +105,12 @@ const updateExposition = async (req, res, next) => {
       throw error;
     }
 
-    const image =
-      req.files && req.files["image"]
-        ? req.files["image"][0].filename
-        : req.file
-        ? req.file.filename
-        : null;
+    const { image: a } = req.files;
+    const image = a
+      ? getFileObject(a)[0]
+      : req.file
+      ? getFileObject([req.file])[0]
+      : null;
 
     if (title) {
       exposition.title = title;
@@ -139,14 +134,23 @@ const updateExposition = async (req, res, next) => {
       exposition.type = parseInt(type);
     }
     if (image) {
-      deleteFiles([getFilePath("images", exposition.image)]);
       exposition.image = image;
     }
     if (archived) {
       exposition.archived = archived;
     }
 
-    await exposition.save();
+    await exposition.updateOne({
+      title: exposition.title,
+      description: exposition.description,
+      artWorks: exposition.artWorks,
+      place: exposition.place,
+      dateEnds: exposition.dateEnds,
+      dateStarts: exposition.dateStarts,
+      type: exposition.type,
+      image: exposition.image,
+      archived: exposition.archived,
+    });
 
     res.status(200).json({
       _id: exposition._id,
@@ -181,9 +185,7 @@ const deleteExposition = async (req, res, next) => {
       throw error;
     }
 
-    deleteFiles(getFilesPaths({ images: [exposition.image] }));
-
-    await Exposition.findByIdAndDelete(exposition._id);
+    await exposition.deleteOne();
 
     res.status(200).json({
       _id: exposition._id,

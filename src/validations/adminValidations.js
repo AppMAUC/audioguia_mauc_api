@@ -1,6 +1,8 @@
 const { body } = require("express-validator");
-const { mimeTypeValidation } = require("../utils/mimeTypeValidation");
-const { fileExists, getFilePath } = require("../utils/deleteFiles");
+const {
+  fileUpdateValidation,
+  fileCreateValidation,
+} = require("../utils/handleFileValidations");
 
 /**
  * Validation middleware for creating an admin.
@@ -56,14 +58,11 @@ const adminCreateValidation = () => {
       return true;
     }),
     body("image").custom((value, { req }) => {
-      if (!mimeTypeValidation("image", [req.file])) {
-        throw new Error("Envie apenas arquivos png, jpg ou tif.");
+      try {
+        return fileCreateValidation([req.file], "image", "png, jpg ou tif");
+      } catch (error) {
+        throw error;
       }
-      if (!fileExists(req.file.path)) {
-        throw new Error("Erro ao salvar a imagem no servidor.");
-      }
-
-      return true;
     }),
   ];
 };
@@ -125,14 +124,17 @@ const adminUpdateValidation = () => {
     body("image")
       .optional()
       .custom((value, { req }) => {
-        if (fileExists(getFilePath("images", value))) {
-          return true;
+        try {
+          return fileUpdateValidation(
+            value,
+            [req.file],
+            "image",
+            "png, jpg ou tif"
+          );
+        } catch (error) {
+          throw error;
         }
-        return (
-          mimeTypeValidation("image", [req.file]) && fileExists(req.file.path)
-        );
-      })
-      .withMessage("Envie apenas arquivos png, jpg ou tif."),
+      }),
   ];
 };
 
@@ -141,4 +143,3 @@ module.exports = {
   loginValidation,
   adminUpdateValidation,
 };
-  

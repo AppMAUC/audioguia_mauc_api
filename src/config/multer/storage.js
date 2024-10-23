@@ -33,6 +33,7 @@ const createDynamicStorage = (destinations, filenames, storageEngine) =>
     },
   });
 
+// Multer memory storage
 const memoryStorage = multer.memoryStorage();
 
 module.exports = {

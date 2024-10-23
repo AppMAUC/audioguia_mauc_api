@@ -1,11 +1,8 @@
 const { body } = require("express-validator");
-const { mimeTypeValidation } = require("../utils/mimeTypeValidation");
 const {
-  fileExists,
-  getFilePath,
-  filesExists,
-} = require("../utils/deleteFiles");
-const { audioValidation } = require("../utils/audioValidation");
+  fileCreateValidation,
+  fileUpdateValidation,
+} = require("../utils/handleFileValidations");
 
 /**
  * Validation middleware for creating an artist.
@@ -36,30 +33,30 @@ const artistCreateValidation = () => {
       .isString()
       .withMessage("A biografia do artista é obrigatória."),
     body("image").custom((value, { req }) => {
-      if (!mimeTypeValidation("image", req.files["image"])) {
-        throw new Error("Envie apenas arquivos png, jpg ou tif.");
+      try {
+        return fileCreateValidation(
+          req.files["image"],
+          "image",
+          "png, jpg ou tif"
+        );
+      } catch (error) {
+        throw error;
       }
-
-      if (!fileExists(req.files["image"][0].path)) {
-        throw new Error("Erro ao salvar a imagem no servidor.");
-      }
-
-      return true;
     }),
     body("artWorks")
       .optional()
       .isArray()
       .withMessage("Formato de dado inválido."),
     body("audioGuia").custom((value, { req }) => {
-      if (!mimeTypeValidation("audio", req.files["audioGuia"])) {
-        throw new Error("Envie apenas arquivos mp3 ou mp4.");
+      try {
+        return fileCreateValidation(
+          req.files["audioGuia"],
+          "audio",
+          "mp3, mp4"
+        );
+      } catch (error) {
+        throw error;
       }
-
-      if (!filesExists(req.files["audioGuia"].map((file) => file.path))) {
-        throw new Error("Erro ao salvar os áudios no servidor.");
-      }
-
-      return true;
     }),
   ];
 };
@@ -104,18 +101,31 @@ const artistUpdateValidation = () => {
     body("image")
       .optional()
       .custom((value, { req }) => {
-        if (fileExists(getFilePath("images", value))) {
-          return true;
+        try {
+          return fileUpdateValidation(
+            value,
+            req.files["image"],
+            "image",
+            "png, jpg ou tif"
+          );
+        } catch (error) {
+          throw error;
         }
-        return mimeTypeValidation("image", req.files["image"]);
-      })
-      .withMessage("Envie apenas arquivos png, jpg ou tif."),
+      }),
     body("audioGuia")
       .optional()
       .custom((value, { req }) => {
-        return audioValidation(value, req.files["audioGuia"]);
-      })
-      .withMessage("Apenas arquivos mp3 ou mp4 são permitidos."),
+        try {
+          return fileUpdateValidation(
+            value,
+            req.files["audioGuia"],
+            "audio",
+            "mp3, mp4"
+          );
+        } catch (error) {
+          throw error;
+        }
+      }),
   ];
 };
 

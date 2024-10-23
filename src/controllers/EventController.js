@@ -1,10 +1,6 @@
 const Event = require("../models/Event");
 const mongoose = require("mongoose");
-const {
-  deleteFiles,
-  getFilesPaths,
-  getFilePath,
-} = require("../utils/deleteFiles");
+const { getFileObject } = require("../utils/multerFunctions");
 
 /**
  * Registers a new event.
@@ -22,8 +18,13 @@ const {
 const registerEvent = async (req, res, next) => {
   try {
     const { description, date, title } = req.body;
+    const { image: a } = req.files;
+    const image = a
+      ? getFileObject(a)[0]
+      : req.file
+      ? getFileObject([req.file])[0]
+      : null;
 
-    const image = req.file ? req.file.filename : null;
     const archived = false;
     const newEvent = await Event.create({
       description,
@@ -69,8 +70,12 @@ const updateEvent = async (req, res, next) => {
     const { description, date, title, archived } = req.body;
     const { id } = req.params;
     const event = await Event.findById(new mongoose.Types.ObjectId(id));
-
-    const image = req.file ? req.file.filename : null;
+    const { image: a } = req.files;
+    const image = a
+      ? getFileObject(a)[0]
+      : req.file
+      ? getFileObject([req.file])[0]
+      : null;
 
     if (!event) {
       const error = new Error("Evento não encontrado");
@@ -88,14 +93,19 @@ const updateEvent = async (req, res, next) => {
       event.date = date;
     }
     if (image) {
-      deleteFiles([getFilePath("images", event.image)]);
       event.image = image;
     }
     if (archived) {
       event.archived = archived;
     }
 
-    await event.save();
+    await event.updateOne({
+      title: event.title,
+      description: event.description,
+      date: event.date,
+      image: event.image,
+      archived: event.archived,
+    });
 
     res.status(200).json({
       _id: event._id,
@@ -127,8 +137,7 @@ const deleteEvent = async (req, res, next) => {
       throw error;
     }
 
-    deleteFiles(getFilesPaths({ images: [event.image] }));
-    await Event.findByIdAndDelete(event._id);
+    await event.deleteOne();
 
     res.status(200).json({
       _id: event._id,

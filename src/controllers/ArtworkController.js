@@ -1,14 +1,32 @@
 const ArtWork = require("../models/ArtWork");
 const mongoose = require("mongoose");
-const { getFileNames } = require("../utils/multerFunctions");
-const {
-  deleteFiles,
-  getFilesPaths,
-  getFilePath,
-  parseFileName,
-  createElements,
-} = require("../utils/deleteFiles");
+const { getFileObject } = require("../utils/multerFunctions");
+const { verifyAudios } = require("../utils/handleFileValidations");
 const { getAllWithPaginate } = require("../utils/paginate");
+
+/**
+ * @typedef audio
+ * @property {string} lang - The language of the audio file.
+ * @property {string} name - The name of the audio file.
+ * @property {number} size - The size of the audio file.
+ * @property {string} key - The key of the audio file.
+ * @property {string} url - The URL of the audio file.
+ */
+
+/**
+ * @typedef image
+ * @property {string} name - The name of the image file.
+ * @property {number} size - The size of the image file.
+ * @property {string} key - The key of the image file.
+ * @property {string} url - The URL of the image file.
+ */
+
+/**
+ * @typedef reqFiles
+ * @property {audio[]} audioDesc - The audio description files for the artwork.
+ * @property {audio[]} audioGuia - The audio guide files for the artwork.
+ * @property {image[]} image - The image file for the artwork.
+ */
 
 /**
  * Registers a new artwork.
@@ -21,9 +39,9 @@ const { getAllWithPaginate } = require("../utils/paginate");
  * @param {string} req.body.year - The year of the artwork.
  * @param {string} req.body.dimension - The dimensions of the artwork.
  * @param {Object} req.files - The files uploaded with the request.
- * @param {Array} req.files.audioDesc - The audio description files for the artwork.
- * @param {Array} req.files.audioGuia - The audio guide files for the artwork.
- * @param {Array} req.files.image - The image file for the artwork.
+ * @param {audio[]} req.files.audioDesc - The audio description files for the artwork.
+ * @param {audio[]} req.files.audioGuia - The audio guide files for the artwork.
+ * @param {image[]} req.files.image - The image file for the artwork.
  * @param {Object} res - The response object.
  * @returns {Promise<void>}
  */
@@ -31,24 +49,10 @@ const registerArtWork = async (req, res, next) => {
   try {
     const { title, description, author, suport, year, dimension } = req.body;
 
-    const image =
-      req.files && req.files["image"]
-        ? req.files["image"][0].filename
-        : req.file
-        ? req.file.filename
-        : null;
-    const audioDesc =
-      req.files && req.files["audioDesc"]
-        ? getFileNames(req.files["audioDesc"])
-        : req.file
-        ? req.file.filename
-        : null;
-    const audioGuia =
-      req.files && req.files["audioGuia"]
-        ? getFileNames(req.files["audioGuia"])
-        : req.file
-        ? req.file.filename
-        : null;
+    const { image: a, audioDesc: b, audioGuia: c } = req.files;
+    const image = a ? getFileObject(a)[0] : null;
+    const audioDesc = b ? getFileObject(b) : null;
+    const audioGuia = c ? getFileObject(c) : null;
     const archived = false;
 
     const newArtWork = await ArtWork.create({
@@ -107,24 +111,10 @@ const updateArtWork = async (req, res, next) => {
     const { id } = req.params;
     const artWork = await ArtWork.findById(new mongoose.Types.ObjectId(id));
 
-    const image =
-      req.files && req.files["image"]
-        ? req.files["image"][0].filename
-        : req.file
-        ? req.file
-        : null;
-    const audioDesc =
-      req.files && req.files["audioDesc"]
-        ? getFileNames(req.files["audioDesc"])
-        : req.file
-        ? req.file
-        : null;
-    const audioGuia =
-      req.files && req.files["audioGuia"]
-        ? getFileNames(req.files["audioGuia"])
-        : req.file
-        ? req.file
-        : null;
+    const { image: a, audioDesc: b, audioGuia: c } = req.files;
+    const image = a ? getFileObject(a)[0] : null;
+    const audioDesc = b ? getFileObject(b) : null;
+    const audioGuia = c ? getFileObject(c) : null;
 
     // Check if artwork exists
     if (!artWork) {
@@ -139,62 +129,15 @@ const updateArtWork = async (req, res, next) => {
     if (description) {
       artWork.description = description;
     }
+
     if (audioDesc) {
-      let data = artWork.audioDesc;
-
-      if (audioDesc.length > 1) {
-        data = audioDesc;
-        deleteFiles(getFilesPaths({ audios: artWork.audioDesc }, "artworks"));
-      }
-
-      // Veio um arquivo de áudio e nenhum existente
-      if (audioDesc.length === 1 && !req.body.audioDesc) {
-        deleteFiles(getFilesPaths({ audios: artWork.audioDesc }));
-        data = audioDesc;
-      }
-
-      if (audioDesc && req.body.audioDesc) {
-        const { audioDesc: previousAudioDesc } = req.body;
-        const paths = getFilesPaths({ audios: artWork.audioDesc }, "artworks");
-        const { language } = parseFileName(previousAudioDesc);
-
-        const oldAudio = paths.filter((path) => !path.includes(language));
-
-        deleteFiles(oldAudio);
-
-        data = [...audioDesc, previousAudioDesc];
-      }
-
-      artWork.audioDesc = data;
+      artWork.audioDesc = verifyAudios(audioDesc, artWork.audioDesc);
     }
+
     if (audioGuia) {
-      let data = artWork.audioGuia;
-
-      if (audioGuia.length > 1) {
-        data = audioGuia;
-        deleteFiles(getFilesPaths({ audios: artWork.audioGuia }));
-      }
-
-      // Veio um arquivo de áudio e nenhum existente
-      if (audioGuia.length === 1 && !req.body.audioGuia) {
-        deleteFiles(getFilesPaths({ audios: artWork.audioGuia }));
-        data = audioGuia;
-      }
-
-      if (audioGuia && req.body.audioGuia) {
-        const { audioGuia: previousAudioGuia } = req.body;
-        const paths = getFilesPaths({ audios: artWork.audioGuia });
-        const { language } = parseFileName(previousAudioGuia);
-
-        const oldAudio = paths.filter((path) => !path.includes(language));
-
-        deleteFiles(oldAudio);
-
-        data = [...audioGuia, previousAudioGuia];
-      }
-
-      artWork.audioGuia = data;
+      artWork.audioGuia = verifyAudios(audioGuia, artWork.audioGuia);
     }
+
     if (author) {
       artWork.author = author;
     }
@@ -208,14 +151,23 @@ const updateArtWork = async (req, res, next) => {
       artWork.dimension = dimension;
     }
     if (image) {
-      deleteFiles([getFilePath("images", artWork.image)]);
       artWork.image = image;
     }
     if (archived) {
       artWork.archived = archived;
     }
 
-    await artWork.save();
+    await artWork.updateOne({
+      title: artWork.title,
+      description: artWork.description,
+      audioDesc: artWork.audioDesc,
+      audioGuia: artWork.audioGuia,
+      author: artWork.author,
+      suport: artWork.suport,
+      dimension: artWork.dimension,
+      image: artWork.image,
+      archived: artWork.archived,
+    });
 
     res.status(200).json({
       _id: artWork._id,
@@ -246,16 +198,8 @@ const deleteArtWork = async (req, res, next) => {
       error.statusCode = 404;
       throw error;
     }
-    deleteFiles(
-      getFilesPaths(
-        createElements(
-          [...artWork.audioDesc, ...artWork.audioGuia],
-          [artWork.image]
-        )
-      )
-    );
 
-    await ArtWork.findByIdAndDelete(artWork._id);
+    await artWork.deleteOne();
 
     res.status(200).json({
       _id: artWork._id,

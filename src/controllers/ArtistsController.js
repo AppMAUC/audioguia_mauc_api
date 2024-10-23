@@ -1,14 +1,8 @@
 const Artist = require("../models/Artist");
 const mongoose = require("mongoose");
-const { getFileNames } = require("../utils/multerFunctions");
-const {
-  deleteFiles,
-  getFilesPaths,
-  getFilePath,
-  createElements,
-  parseFileName,
-} = require("../utils/deleteFiles");
 const { getAllWithPaginate } = require("../utils/paginate");
+const { verifyAudios } = require("../utils/handleFileValidations");
+const { getFileObject } = require("../utils/multerFunctions");
 
 /**
  * Registers a new artist.
@@ -29,18 +23,9 @@ const { getAllWithPaginate } = require("../utils/paginate");
 const registerArtist = async (req, res, next) => {
   try {
     const { name, birthDate, biography, artWorks } = req.body;
-    const image =
-      req.files && req.files["image"]
-        ? req.files["image"][0].filename
-        : req.file
-        ? req.file.filename
-        : null;
-    const audioGuia =
-      req.files && req.files["audioGuia"]
-        ? getFileNames(req.files["audioGuia"])
-        : req.file
-        ? req.file.filename
-        : null;
+    const { image: a, audioGuia: c } = req.files;
+    const image = a ? getFileObject(a)[0] : null;
+    const audioGuia = c ? getFileObject(c) : null;
 
     const newArtist = await Artist.create({
       name,
@@ -90,18 +75,9 @@ const updateArtist = async (req, res, next) => {
     const { id } = req.params;
     const artist = await Artist.findById(new mongoose.Types.ObjectId(id));
 
-    const image =
-      req.files && req.files["image"]
-        ? req.files["image"][0].filename
-        : req.file
-        ? req.file.filename
-        : null;
-    const audioGuia =
-      req.files && req.files["audioGuia"]
-        ? getFileNames(req.files["audioGuia"])
-        : req.file
-        ? req.file.filename
-        : null;
+    const { image: a, audioGuia: c } = req.files;
+    const image = a ? getFileObject(a)[0] : null;
+    const audioGuia = c ? getFileObject(c) : null;
 
     if (!artist) {
       const error = new Error("Artista não encontrado.");
@@ -122,40 +98,20 @@ const updateArtist = async (req, res, next) => {
       artist.biography = biography;
     }
     if (audioGuia) {
-      let data = artist.audioGuia;
-
-      // Vieram mais de um arquivo de audio
-      if (audioGuia.length > 1) {
-        data = audioGuia;
-        deleteFiles(getFilesPaths({ audios: artist.audioGuia }));
-      }
-      // Veio um arquivo de áudio e nenhum existente
-      if (audioGuia.length === 1 && !req.body.audioGuia) {
-        deleteFiles(getFilesPaths({ audios: artist.audioGuia }));
-        data = audioGuia;
-      }
-
-      // Veio um arquivo de áudio e um existente (string com o nome do existente)
-      if (audioGuia && req.body.audioGuia) {
-        const { audioGuia: previousAudioGuia } = req.body;
-        const paths = getFilesPaths({ audios: artist.audioGuia });
-        const { language } = parseFileName(previousAudioGuia);
-
-        const oldAudio = paths.filter((path) => !path.includes(language));
-
-        deleteFiles(oldAudio);
-
-        data = [...audioGuia, previousAudioGuia];
-      }
-
-      artist.audioGuia = data;
+      artist.audioGuia = verifyAudios(audioGuia, artist.audioGuia);
     }
     if (image) {
-      deleteFiles([getFilePath("images", artist.image)]);
       artist.image = image;
     }
 
-    await artist.save();
+    await artist.updateOne({
+      name: artist.name,
+      birthDate: artist.birthDate,
+      biography: artist.biography,
+      audioGuia: artist.audioGuia,
+      image: artist.image,
+      artWorks: artist.artWorks,
+    });
 
     res.status(200).json({
       _id: artist._id,
@@ -189,11 +145,7 @@ const deleteArtist = async (req, res, next) => {
       throw error;
     }
 
-    deleteFiles(
-      getFilesPaths(createElements(artist.audioGuia, [artist.image]))
-    );
-
-    await Artist.findByIdAndDelete(artist._id);
+    await artist.deleteOne();
 
     res.status(200).json({
       _id: artist._id,

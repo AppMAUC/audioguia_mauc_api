@@ -5,6 +5,7 @@
 
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
+const { deleteEngine, getPathbyUrl } = require("../utils/deleteFiles");
 
 /**
  * @typedef {Object} Exposition
@@ -33,7 +34,12 @@ const expositionSchema = new Schema(
       enum: [1, 2], // 1: Expo de longa duração , 2: Expo temporária ( ou curta duração)
       required: true,
     },
-    image: String,
+    image: {
+      name: String,
+      size: Number,
+      key: String,
+      url: String,
+    },
     description: String,
     artWorks: [{ type: mongoose.Schema.Types.ObjectId, ref: "ArtWork" }],
     place: String,
@@ -46,6 +52,39 @@ const expositionSchema = new Schema(
   }
 );
 
+expositionSchema.pre(
+  "deleteOne",
+  { document: true, query: false },
+  async function (next) {
+    const imageFilePath = getPathbyUrl(this.image.url);
+
+    const filesToDelete = [];
+
+    if (imageFilePath) {
+      filesToDelete.push(imageFilePath);
+    }
+
+    await deleteEngine[process.env.STORAGE_TYPE](filesToDelete);
+  }
+);
+
+expositionSchema.pre(
+  "updateOne",
+  { document: true, query: false },
+  async function (next) {
+    const oldExposition = await Exposition.findById(this._id);
+    const filesToDelete = [];
+
+    if (this.image.url !== oldExposition.image.url) {
+      // if the image has changed, delete the old image
+      filesToDelete.push(getPathbyUrl(oldExposition.image.url));
+    }
+
+    if (filesToDelete.length > 0) {
+      await deleteEngine[process.env.STORAGE_TYPE](filesToDelete);
+    }
+  }
+);
 /**
  * Create a text index on the title, description, place, and type fields.
  * This allows for efficient text search queries on these fields.

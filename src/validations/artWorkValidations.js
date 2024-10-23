@@ -1,11 +1,9 @@
 const { body } = require("express-validator");
-const { mimeTypeValidation } = require("../utils/mimeTypeValidation");
 const {
-  fileExists,
-  getFilePath,
-  filesExists,
-} = require("../utils/deleteFiles");
-const { audioValidation } = require("../utils/audioValidation");
+  fileCreateValidation,
+  fileUpdateValidation,
+} = require("../utils/handleFileValidations");
+
 /**
  * Validation rules for creating a new artwork entry.
  *
@@ -17,7 +15,7 @@ const { audioValidation } = require("../utils/audioValidation");
  * - `year`: Must be a string and is required.
  * - `dimension`: Must be a string and is required.
  * - `archived`: Must be a boolean and is optional.
- * - `image`: Must be a valid image file (png or jpg).
+ * - `image`: Must be a valid image file (png, jpg or tiff).
  * - `audioDesc`: Must be a valid audio file (mp3 or mp4).
  * - `audioGuia`: Must be a valid audio file (mp3 or mp4).
  *
@@ -44,37 +42,39 @@ const artWorkCreateValidation = () => {
     body("dimension")
       .isString()
       .withMessage("As dimensões da obra são obrigatórias."),
-    body("image")
-      .custom((value, { req }) => {
-        return mimeTypeValidation("image", req.files["image"]);
-      })
-      .withMessage("Envie apenas arquivos png, jpg ou tif."),
-    body("audioDesc")
-      .custom((value, { req }) => {
-        if (!mimeTypeValidation("audio", req.files["audioDesc"])) {
-          throw new Error("Envie apenas arquivos mp3 ou mp4.");
-        }
-
-        if (!filesExists(req.files["audioDesc"].map((file) => file.path))) {
-          throw new Error("Erro ao salvar os áudios no servidor.");
-        }
-
-        return true;
-      })
-      .withMessage("Apenas arquivos mp3 ou mp4 são permitidos."),
-    body("audioGuia")
-      .custom((value, { req }) => {
-        if (!mimeTypeValidation("audio", req.files["audioGuia"])) {
-          throw new Error("Envie apenas arquivos mp3 ou mp4.");
-        }
-
-        if (!filesExists(req.files["audioGuia"].map((file) => file.path))) {
-          throw new Error("Erro ao salvar os áudios no servidor.");
-        }
-
-        return true;
-      })
-      .withMessage("Apenas arquivos mp3 ou mp4 são permitidos."),
+    body("image").custom((value, { req }) => {
+      try {
+        return fileCreateValidation(
+          req.files["image"],
+          "image",
+          "png, jpg ou tif"
+        );
+      } catch (error) {
+        throw error;
+      }
+    }),
+    body("audioDesc").custom((value, { req }) => {
+      try {
+        return fileCreateValidation(
+          req.files["audioDesc"],
+          "audio",
+          "mp3 ou mp4"
+        );
+      } catch (error) {
+        throw error;
+      }
+    }),
+    body("audioGuia").custom((value, { req }) => {
+      try {
+        return fileCreateValidation(
+          req.files["audioGuia"],
+          "audio",
+          "mp3 ou mp4"
+        );
+      } catch (error) {
+        throw error;
+      }
+    }),
   ];
 };
 
@@ -120,24 +120,45 @@ const artWorkUpdateValidation = () => {
     body("image")
       .optional()
       .custom((value, { req }) => {
-        if (fileExists(getFilePath("images", value))) {
-          return true;
+        try {
+          return fileUpdateValidation(
+            value,
+            req.files["image"],
+            "image",
+            "png, jpg ou tif"
+          );
+        } catch (error) {
+          throw error;
         }
-        return mimeTypeValidation("image", req.files["image"]);
-      })
-      .withMessage("Envie apenas arquivos png, jpg ou tif."),
+      }),
     body("audioDesc")
       .optional()
       .custom((value, { req }) => {
-        return audioValidation(value, req.files["audioDesc"]);
-      })
-      .withMessage("Apenas arquivos mp3 ou mp4 são permitidos."),
+        try {
+          return fileUpdateValidation(
+            value,
+            req.files["audioDesc"],
+            "audio",
+            "mp3 ou mp4"
+          );
+        } catch (error) {
+          throw error;
+        }
+      }),
     body("audioGuia")
       .optional()
       .custom((value, { req }) => {
-        return audioValidation(value, req.files["audioGuia"]);
-      })
-      .withMessage("Apenas arquivos mp3 ou mp4 são permitidos."),
+        try {
+          return fileUpdateValidation(
+            value,
+            req.files["audioGuia"],
+            "audio",
+            "mp3 ou mp4"
+          );
+        } catch (error) {
+          throw error;
+        }
+      }),
   ];
 };
 

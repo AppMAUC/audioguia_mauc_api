@@ -1,5 +1,6 @@
 const regex = require("../utils/regex");
 const path = require("path");
+const { getUrlByFileKey } = require("./deleteFiles");
 
 /**
  * Retorna o caminho da url
@@ -8,7 +9,6 @@ const path = require("path");
  * @example
  * getURLPath("/api/artworks") // "artworks"
  */
-
 const getURLPath = (baseUrl) => {
   return baseUrl.replace("/", "").split("/")[1];
 };
@@ -46,7 +46,7 @@ const getAudioType = (field) => {
  */
 const getAudioLang = (name) => {
   const lang = name.match(regex.audioLangRegex);
-  return lang ? lang[1] : null;
+  return lang ? lang[1] : "br";
 };
 
 /**
@@ -89,30 +89,45 @@ const getAdvancedPath = (field, baseUrl, originalName) => {
  * @example
  * nameWithoutExt("file.jpg") // "file"
  */
-
 const nameWithoutExt = (name) => {
   return path.basename(name, path.extname(name));
 };
 
 /**
- * Retorna o nome dos arquivos
+ * Retorna o objeto dos arquivos com os campos name, size, key e url
  * @param {Array<Object>} array
- * @returns {Array<String>} names
+ * @returns { audio[] | image[]} files
  * @example
- * getFileNames([{filename: "file1"}, {filename: "file2"}]) // ["file1", "file2"]
+ * getFileNames([{...}, {...}]) // [{name, size, key, url}, {name, size, key, url}]
  */
+const getFileObject = (array) => {
+  const files = array.map((item) => {
+    const { originalname: name, size, key, url = "", lang } = item;
 
-const getFileNames = (array) => {
-  const names = array.map((item) => {
-    return item.filename;
+    if (lang) {
+      return {
+        name,
+        size,
+        key,
+        url: url ? url : getUrlByFileKey("audios", key),
+        lang,
+      };
+    }
+
+    return {
+      name,
+      size,
+      key,
+      url: url ? url : getUrlByFileKey("images", key),
+    };
   });
-  return names;
+  return files;
 };
 
 module.exports = {
   getURLPath,
   getBasePath,
-  getFileNames,
+  getFileObject,
   getAdvancedPath,
   getAudioType,
   getAudioLang,

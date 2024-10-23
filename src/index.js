@@ -38,7 +38,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 // Upload directory
-app.use("/files", express.static(path.join(__dirname, "..", "tmp", "uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "..", "tmp", "uploads")));
 
 //routes
 app.use(router);
@@ -49,4 +49,6 @@ app.use(handleError);
 // port config
 app.listen(port, () => {
   console.log(`App rodando na porta ${port}`);
+  console.log(`Ambiente: ${process.env.NODE_ENV}`);
+  console.log(`Storage: ${process.env.STORAGE_TYPE}`);
 });

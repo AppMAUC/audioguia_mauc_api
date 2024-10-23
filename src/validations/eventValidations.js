@@ -1,6 +1,9 @@
 const { body } = require("express-validator");
-const { mimeTypeValidation } = require("../utils/mimeTypeValidation");
-const { fileExists, getFilePath } = require("../utils/deleteFiles");
+const {
+  fileCreateValidation,
+  fileUpdateValidation,
+} = require("../utils/handleFileValidations");
+
 /**
  * Validation rules for creating an event.
  *
@@ -25,18 +28,13 @@ const eventCreateValidation = () => {
     body("title").isString().withMessage("O título é obrigatório."),
     body("description").isString().withMessage("A descrição é obrigatória."),
     body("date").isDate().withMessage("A data do evento é obrigatória."),
-    body("image")
-      .custom((value, { req }) => {
-        if (!mimeTypeValidation("image", [req.file])) {
-          throw new Error("Envie apenas arquivos png, jpg ou tif.");
-        }
-        if (!fileExists(req.file.path)) {
-          throw new Error("Erro ao salvar a imagem no servidor.");
-        }
-
-        return true;
-      })
-      .withMessage("Envie apenas arquivos png, jpg ou tif."),
+    body("image").custom((value, { req }) => {
+      try {
+        return fileCreateValidation([req.file], "image", "png, jpg ou tif");
+      } catch (error) {
+        throw error;
+      }
+    }),
   ];
 };
 
@@ -77,14 +75,17 @@ const eventUpdateValidation = () => {
     body("image")
       .optional()
       .custom((value, { req }) => {
-        if (fileExists(getFilePath("images", value))) {
-          return true;
+        try {
+          return fileUpdateValidation(
+            value,
+            [req.file],
+            "image",
+            "png, jpg ou tif"
+          );
+        } catch (error) {
+          throw error;
         }
-        return (
-          mimeTypeValidation("image", [req.file]) && fileExists(req.file.path)
-        );
-      })
-      .withMessage("Envie apenas arquivos png, jpg ou tif."),
+      }),
   ];
 };
 

@@ -4,6 +4,7 @@
  */
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
+const { deleteEngine, getPathbyUrl } = require("../utils/deleteFiles");
 
 /**
  * @typedef {Object} Admin
@@ -26,7 +27,12 @@ const adminSchema = new Schema(
     name: String,
     email: String,
     password: String,
-    image: String,
+    image: {
+      name: String,
+      size: Number,
+      key: String,
+      url: String,
+    },
     accessLevel: {
       type: Number,
       enum: [1, 2], // 1: Gerenciar administradores e conteúdo, 2: Somente conteúdo
@@ -36,6 +42,40 @@ const adminSchema = new Schema(
   },
   {
     timestamps: true,
+  }
+);
+
+adminSchema.pre(
+  "deleteOne",
+  { document: true, query: false },
+  async function (next) {
+    const imageFilePath = getPathbyUrl(this.image.url);
+
+    const filesToDelete = [];
+
+    if (imageFilePath) {
+      filesToDelete.push(imageFilePath);
+    }
+
+    await deleteEngine[process.env.STORAGE_TYPE](filesToDelete);
+  }
+);
+
+adminSchema.pre(
+  "updateOne",
+  { document: true, query: false },
+  async function (next) {
+    const oldAdmin = await Admin.findById(this._id);
+    const filesToDelete = [];
+
+    if (this.image.url !== oldAdmin.image.url) {
+      // if the image has changed, delete the old image
+      filesToDelete.push(getPathbyUrl(oldAdmin.image.url));
+    }
+
+    if (filesToDelete.length > 0) {
+      await deleteEngine[process.env.STORAGE_TYPE](filesToDelete);
+    }
   }
 );
 

@@ -32,6 +32,12 @@ const filenames = {
   audio: audioFilename,
 };
 
+/**
+ * An object that defines different storage engines for file uploads.
+ * 
+ * @property {Object} local - The local storage engine using multer's disk storage.
+ * @property {Object} firebase - The Firebase storage engine.
+ */
 const storageEngine = {
   local: multer.diskStorage,
   firebase: firebaseStorage,

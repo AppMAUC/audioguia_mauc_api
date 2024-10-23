@@ -1,9 +1,23 @@
 const { bucket } = require("../firebase");
 
+/**
+ * Determines the destination directory for uploaded files.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} file - The file object that is being uploaded.
+ * @param {Function} cb - The callback function to specify the destination directory.
+ */
 function getDestination(req, file, cb) {
   cb(null, "uploads");
 }
 
+/**
+ * Generates a unique filename for the uploaded file by appending the current timestamp to the original filename.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} file - The file object containing details of the uploaded file.
+ * @param {Function} cb - The callback function to pass the generated filename.
+ */
 function getFilename(req, file, cb) {
   cb(null, `${Date.now()}-${file.originalname}`);
 }
@@ -15,7 +29,18 @@ function FirebaseStorage(opts) {
   this.getDestination = opts.destination || getDestination;
   this.getFilename = opts.filename || getFilename;
 }
-
+/**
+ * Método para manipular o arquivo enviado para o Firebase Storage.
+ *
+ * @param {Object} req - O objeto de requisição.
+ * @param {Object} file - O arquivo enviado.
+ * @param {Function} cb - Função de retorno de chamada.
+ * @returns {void}
+ * @throws {Error} - Se ocorrer um erro ao manipular o arquivo.
+ * @example
+ * const storage = new FirebaseStorage({ destination: getDestination, filename: getFilename });
+ *
+ */
 FirebaseStorage.prototype._handleFile = function _handleFile(req, file, cb) {
   // Chamar as funções `destination` e `filename` para personalizar a lógica
   this.getDestination(req, file, (err, destination) => {
@@ -43,8 +68,9 @@ FirebaseStorage.prototype._handleFile = function _handleFile(req, file, cb) {
           await blob.makePublic();
           const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
           file.url = publicUrl;
+          file.size = blob.metadata.size;
           cb(null, {
-            path: publicUrl,
+            path: filePath,
             filename: fileName,
           });
         } catch (err) {
@@ -58,6 +84,16 @@ FirebaseStorage.prototype._handleFile = function _handleFile(req, file, cb) {
   });
 };
 
+/**
+ * Método para remover um arquivo do Firebase Storage.
+ * @param {Object} req - O objeto de requisição.
+ * @param {Object} file - O arquivo a ser removido.
+ * @param {Function} cb - Função de retorno de chamada.
+ * @returns {void}
+ * @throws {Error} - Se ocorrer um erro ao remover o arquivo.
+ * @example
+ * const storage = new FirebaseStorage({ destination: getDestination, filename: getFilename });
+ */
 FirebaseStorage.prototype._removeFile = function _removeFile(req, file, cb) {
   const blob = bucket.file(file.filename);
   blob
