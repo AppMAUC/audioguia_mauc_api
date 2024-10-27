@@ -32,6 +32,9 @@ const paginate = (page, limit, totalItems) => {
 
 /**
  * Retrieves data with pagination based on the request query parameters.
+ * The sort parameter is used to sort the data after mongoose query and it related to responses that use score.
+ * Is related an array of models to query.
+ * More used for search queries.
  *
  * @async
  * @function getDataWithPaginate
@@ -73,7 +76,9 @@ const paginate = (page, limit, totalItems) => {
 const getDataWithPaginate = async (models, req, sort = handleSort) => {
   const query = req.query.q || "";
   const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10; // O limite significa que vai vir no mínimo um item de cada model por página
+  // O limite significa que vai vir no mínimo um item de cada model por página e não no mínimo um item de resposta.
+  // Você pode modificar isso para que venha no mínimo um item de resposta por página com uma função de sort customizada.
+  const limit = parseInt(req.query.limit) || 10;
   const skip = (page - 1) * limit;
 
   const searchQuery = { $text: { $search: query } };
@@ -95,11 +100,16 @@ const getDataWithPaginate = async (models, req, sort = handleSort) => {
 
   const totalItems = counts.reduce((acc, count) => acc + count, 0);
 
-  return { ...paginate(page, limit, totalItems), data: sort(data.flat()) };
+  return {
+    ...paginate(page, limit, totalItems),
+    data: sort(data.flat(), limit),
+  };
 };
 
 /**
  * Retrieves paginated data from a given model based on the request query parameters.
+ * The sort parameter is used to sort the data before paginating in the mongoose query.
+ * More used for general queries.
  *
  * @async
  * @function getAllWithPaginate
@@ -110,7 +120,7 @@ const getDataWithPaginate = async (models, req, sort = handleSort) => {
  * @param {string} [req.query.limit=10] - The number of items per page.
  * @param {Object} sort - The sorting criteria for the query.
  * @returns {Promise<Object>} The paginated data and pagination details.
- * 
+ *
  * @example
  * const data = await getAllWithPaginate(Artist, req, [["date", -1]]);
  */
