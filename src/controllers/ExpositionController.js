@@ -24,12 +24,7 @@ const registerExposition = async (req, res, next) => {
   try {
     const { title, description, type, artWorks, place, dateStarts, dateEnds } =
       req.body;
-    const { image: a } = req.files;
-    const image = a
-      ? getFileObject(a)[0]
-      : req.file
-      ? getFileObject([req.file])[0]
-      : null;
+    const image = req.file ? getFileObject([req.file])[0] : null;
     const archived = false;
 
     // Create exposition
@@ -94,6 +89,7 @@ const updateExposition = async (req, res, next) => {
       archived,
     } = req.body;
     const { id } = req.params;
+    const image = req.file ? getFileObject([req.file])[0] : null;
     const exposition = await Exposition.findById(
       new mongoose.Types.ObjectId(id)
     );
@@ -104,13 +100,6 @@ const updateExposition = async (req, res, next) => {
       error.statusCode = 404;
       throw error;
     }
-
-    const { image: a } = req.files;
-    const image = a
-      ? getFileObject(a)[0]
-      : req.file
-      ? getFileObject([req.file])[0]
-      : null;
 
     if (title) {
       exposition.title = title;

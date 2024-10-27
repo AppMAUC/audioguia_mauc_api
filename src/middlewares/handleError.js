@@ -11,7 +11,7 @@ const { rollBackFiles } = require("../utils/deleteFiles");
  * @returns {void}
  */
 const handleError = (err, req, res, next) => {
-  const statusCode = err.statusCode || 500;
+  const statusCode = err.statusCode || 503;
   rollBackFiles(req);
   res.status(statusCode).json({
     statusCode: statusCode,

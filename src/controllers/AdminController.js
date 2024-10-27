@@ -23,19 +23,14 @@ const { getFileObject } = require("../utils/multerFunctions");
 const registerAdmin = async (req, res, next) => {
   try {
     const { name, email, password, accessLevel } = req.body;
-    const { image: a } = req.files;
-    const image = a
-      ? getFileObject(a)[0]
-      : req.file
-      ? getFileObject([req.file])[0]
-      : null;
+    const image = req.file ? getFileObject([req.file])[0] : null;
 
     // Check if admin exists
     const admin = await Admin.findOne({ email });
 
     if (admin) {
       const error = new Error("Por favor utilize outro email");
-      error.statusCode = 422;
+      error.statusCode = 409;
       throw error;
     }
 
@@ -85,12 +80,7 @@ const registerAdmin = async (req, res, next) => {
 const updateAdmin = async (req, res, next) => {
   try {
     const { name, password } = req.body;
-    const { image: a } = req.files;
-    const image = a
-      ? getFileObject(a)[0]
-      : req.file
-      ? getFileObject([req.file])[0]
-      : null;
+    const image = req.file ? getFileObject([req.file])[0] : null;
 
     const reqAdmin = req.admin;
 
@@ -152,8 +142,9 @@ const updateAdmin = async (req, res, next) => {
 const deleteAdmin = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const admin = await Admin.findById(new mongoose.Types.ObjectId(id));
 
+    const admin = await Admin.findById(new mongoose.Types.ObjectId(id));
+    console.log(admin);
     if (!admin) {
       const error = new Error("Administrador não encontrado");
       error.statusCode = 404;

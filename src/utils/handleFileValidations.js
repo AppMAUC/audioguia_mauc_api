@@ -70,6 +70,11 @@ const fileUpdateValidation = (value, arr, fileType, types) => {
  * };
  */
 const fileCreateValidation = (arr, fileType, types) => {
+  if (arr.length === 0 || !arr || !arr[0]) {
+    // if the file does not exist, an error is returned
+    throw Error(`Envie apenas arquivos ${types}.`);
+  }
+
   if (!sizeValidation(arr, limits.fileSize)) {
     // if the file size exceeds the limit, an error is returned
     throw Error("O tamanho do arquivo ultrapassou o limite permitido.");

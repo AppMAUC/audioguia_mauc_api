@@ -18,12 +18,7 @@ const { getFileObject } = require("../utils/multerFunctions");
 const registerEvent = async (req, res, next) => {
   try {
     const { description, date, title } = req.body;
-    const { image: a } = req.files;
-    const image = a
-      ? getFileObject(a)[0]
-      : req.file
-      ? getFileObject([req.file])[0]
-      : null;
+    const image = req.file ? getFileObject([req.file])[0] : null;
 
     const archived = false;
     const newEvent = await Event.create({
@@ -70,12 +65,7 @@ const updateEvent = async (req, res, next) => {
     const { description, date, title, archived } = req.body;
     const { id } = req.params;
     const event = await Event.findById(new mongoose.Types.ObjectId(id));
-    const { image: a } = req.files;
-    const image = a
-      ? getFileObject(a)[0]
-      : req.file
-      ? getFileObject([req.file])[0]
-      : null;
+    const image = req.file ? getFileObject([req.file])[0] : null;
 
     if (!event) {
       const error = new Error("Evento não encontrado");

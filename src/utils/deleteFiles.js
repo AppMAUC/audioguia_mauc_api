@@ -240,9 +240,9 @@ const rollBackFiles = (req) => {
  * @example
  * getPathbyUrl("http://localhost:3000/uploads/audios/artworks/desc/en/artworks-desc-en-7234151728093518855.MP3") // "uploads/audios/artworks/desc/en/artworks-desc-en-7234151728093518855.MP3"
  */
-const getPathbyUrl = (url) => {
+const getPathbyUrl = (url = "") => {
   const path = url.split("uploads")[1];
-  return `uploads${path}`;
+  return path ? `uploads${path}` : null;
 };
 
 /**
