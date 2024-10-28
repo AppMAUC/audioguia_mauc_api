@@ -2,6 +2,21 @@ const { mimeTypeValidation, sizeValidation } = require("./fileValidations");
 const { limits } = require("../config/multer");
 
 /**
+ * Verifies if the request files are valid based on the request.
+ *
+ * @param {Object} reqFiles - The files from the request.
+ * @param {string[]} types - The allowed file types.
+ * @throws Will throw an error if no files are provided or if the files are not of the allowed types.
+ * @returns {boolean} Returns true if the files are valid.
+ */
+const verifyReqFiles = (reqFiles, types) => {
+  if (!reqFiles) {
+    throw Error(`Envie um arquivo válido. Apenas ${types} são permitidos.`);
+  }
+  return true;
+};
+
+/**
  * Validates files based on their existence and MIME type.
  *
  * @param {string|string[]} value - The audio file(s) to validate. Can be a string representing an existing file or an array of new files.
@@ -69,7 +84,8 @@ const fileUpdateValidation = (value, arr, fileType, types) => {
  *  ];
  * };
  */
-const fileCreateValidation = (arr, fileType, types) => {
+const fileCreateValidation = (arr = [], fileType, types) => {
+  console.log("entrou na func: ", arr);
   if (arr.length === 0 || !arr || !arr[0]) {
     // if the file does not exist, an error is returned
     throw Error(`Envie apenas arquivos ${types}.`);
@@ -141,4 +157,5 @@ module.exports = {
   fileUpdateValidation,
   fileCreateValidation,
   verifyAudios,
+  verifyReqFiles,
 };

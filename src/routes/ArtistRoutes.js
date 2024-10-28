@@ -13,6 +13,7 @@ const {
 
 // Middlewares
 const validate = require("../validations/handleValidation");
+const queryIdValidation = require("../middlewares/queryIdValidation");
 const {
   artistCreateValidation,
   artistUpdateValidation,
@@ -33,15 +34,16 @@ router.post(
   registerArtist
 );
 
-router.delete("/:id", authGuard, validate, deleteArtist);
+router.delete("/:id", authGuard, queryIdValidation, validate, deleteArtist);
 
 router.get("/", getAllArtists);
 router.get("/search", searchArtist);
-router.get("/:id", getArtistById);
+router.get("/:id", queryIdValidation, getArtistById);
 
 router.put(
   "/:id",
   authGuard,
+  queryIdValidation,
   genericUpload(fields),
   artistUpdateValidation(),
   validate,

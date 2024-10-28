@@ -38,6 +38,7 @@ const upload = multer({
  */
 const genericUpload = (fields) => {
   return multer({
+    dest,
     storage: combinedStorage,
     fileFilter: defaultFilter,
     limits: limits,

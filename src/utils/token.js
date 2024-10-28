@@ -9,7 +9,7 @@ const jwt = require("jsonwebtoken");
  */
 const generateAccessToken = (id, email) => {
   return jwt.sign({ _id: id, email: email }, process.env.ACCESS_TOKEN_SECRET, {
-    expiresIn: "15min",
+    expiresIn: "60min",
   });
 };
 

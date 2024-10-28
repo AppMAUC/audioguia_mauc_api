@@ -75,7 +75,7 @@ const updateArtist = async (req, res, next) => {
     const { id } = req.params;
     const artist = await Artist.findById(new mongoose.Types.ObjectId(id));
 
-    const { image: a, audioGuia: c } = req.files;
+    const { image: a, audioGuia: c } = req.files ? req.files : {};
     const image = a ? getFileObject(a)[0] : null;
     const audioGuia = c ? getFileObject(c) : null;
 

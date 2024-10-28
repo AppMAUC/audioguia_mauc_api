@@ -1,6 +1,6 @@
 const { validationResult } = require("express-validator");
 const { rollBackFiles } = require("../utils/deleteFiles");
-const mongoose = require("mongoose");
+
 /**
  * Middleware function to handle validation results from express-validator.
  *
@@ -14,20 +14,6 @@ const mongoose = require("mongoose");
  */
 const validate = (req, res, next) => {
   const errors = validationResult(req);
-
-  if (req.params.id && !mongoose.Types.ObjectId.isValid(req.params.id)) {
-    rollBackFiles(req);
-    return res.status(400).json({
-      statusCode: 400,
-      message: "Validation Error",
-      errors: [
-        {
-          field: "id",
-          message: "Identificador inválido",
-        },
-      ],
-    });
-  }
 
   if (!errors.isEmpty()) {
     // Como o mullter está sendo chamado antes das validações do express-validator, os arquivos são salvos no disco antes de serem validados.

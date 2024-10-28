@@ -2,6 +2,7 @@ const { body } = require("express-validator");
 const {
   fileCreateValidation,
   fileUpdateValidation,
+  verifyReqFiles,
 } = require("../utils/handleFileValidations");
 
 /**
@@ -34,6 +35,7 @@ const artistCreateValidation = () => {
       .withMessage("A biografia do artista é obrigatória."),
     body("image").custom((value, { req }) => {
       try {
+        verifyReqFiles(req.files, "png, jpg ou tif");
         return fileCreateValidation(
           req.files["image"],
           "image",
@@ -49,6 +51,7 @@ const artistCreateValidation = () => {
       .withMessage("Formato de dado inválido."),
     body("audioGuia").custom((value, { req }) => {
       try {
+        verifyReqFiles(req.files, "mp3 ou mp4");
         return fileCreateValidation(
           req.files["audioGuia"],
           "audio",
@@ -102,6 +105,7 @@ const artistUpdateValidation = () => {
       .optional()
       .custom((value, { req }) => {
         try {
+          verifyReqFiles(req.files, "png, jpg ou tif");
           return fileUpdateValidation(
             value,
             req.files["image"],
@@ -116,6 +120,7 @@ const artistUpdateValidation = () => {
       .optional()
       .custom((value, { req }) => {
         try {
+          verifyReqFiles(req.files, "mp3 ou mp4");
           return fileUpdateValidation(
             value,
             req.files["audioGuia"],

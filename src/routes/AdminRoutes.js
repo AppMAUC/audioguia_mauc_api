@@ -25,6 +25,7 @@ const {
 const { authGuard } = require("../middlewares/authGuard");
 const { upload } = require("../middlewares/multer");
 const { checkAccessLevel } = require("../middlewares/checkAccessLevel");
+const queryIdValidation = require("../middlewares/queryIdValidation");
 
 // Routes
 router.post(
@@ -40,16 +41,24 @@ router.post("/login", loginValidation(), validate, login);
 router.post("/logout", authGuard, validate, logout);
 router.post("/refresh-token", refreshToken);
 
-router.delete("/:id", authGuard, checkAccessLevel(1), validate, deleteAdmin);
+router.delete(
+  "/:id",
+  authGuard,
+  checkAccessLevel(1),
+  queryIdValidation,
+  validate,
+  deleteAdmin
+);
 
 router.get("/", authGuard, validate, getAllAdmins);
 router.get("/search", authGuard, validate, searchAdmins);
 router.get("/profile", authGuard, validate, getCurrentAdmin);
-router.get("/:id", authGuard, validate, getAdminById);
+router.get("/:id", authGuard, queryIdValidation, validate, getAdminById);
 router.put(
   "/",
   authGuard,
   upload.single("image"),
+  queryIdValidation,
   adminUpdateValidation(),
   validate,
   updateAdmin
