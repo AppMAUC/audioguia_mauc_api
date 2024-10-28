@@ -2,6 +2,7 @@ const { body } = require("express-validator");
 const {
   fileCreateValidation,
   fileUpdateValidation,
+  verifyReqFiles,
 } = require("../utils/handleFileValidations");
 
 /**
@@ -44,6 +45,7 @@ const artWorkCreateValidation = () => {
       .withMessage("As dimensões da obra são obrigatórias."),
     body("image").custom((value, { req }) => {
       try {
+        verifyReqFiles(req.files, "png, jpg ou tif");
         return fileCreateValidation(
           req.files["image"],
           "image",
@@ -55,6 +57,7 @@ const artWorkCreateValidation = () => {
     }),
     body("audioDesc").custom((value, { req }) => {
       try {
+        verifyReqFiles(req.files, "mp3 ou mp4");
         return fileCreateValidation(
           req.files["audioDesc"],
           "audio",
@@ -66,6 +69,7 @@ const artWorkCreateValidation = () => {
     }),
     body("audioGuia").custom((value, { req }) => {
       try {
+        verifyReqFiles(req.files, "mp3 ou mp4");
         return fileCreateValidation(
           req.files["audioGuia"],
           "audio",
@@ -108,11 +112,36 @@ const artWorkUpdateValidation = () => {
       .optional()
       .isLength({ min: 3 })
       .withMessage("O título precisa ter no mínimo três caracteres."),
-    body("description").optional().isString().withMessage("Formato inválido."),
-    body("author").optional().isString().withMessage("Formato inválido."), // lembrar de colocar um checkbox para desconhecido - checkbox ativa desabled no campo mas preenche o json com "Autor Desconhecido ou Desconhecido"
-    body("suport").optional().isString().withMessage("Formato inválido."), // óleo sobre tela etc
-    body("year").optional().isString().withMessage("Formato inválido."), // lembrar de colocar um checkbox para desconhecido - checkbox ativa desabled no campo mas preenche o json com "Autor Desconhecido ou Desconhecido"
-    body("dimension").optional().isString().withMessage("Formato inválido."), // 00 x 00    mm / cm / m
+    body("description")
+      .optional()
+      .isString()
+      .withMessage("Formato inválido.")
+      .isLength({ min: 10 })
+      .withMessage("A descrição precisa ter no mínimo dez caracteres."),
+    body("author")
+      .optional()
+      .isString()
+      .withMessage("Formato inválido.")
+      .isLength({ min: 3 })
+      .withMessage("O nome do autor precisa ter no mínimo três caracteres."),
+    body("suport")
+      .optional()
+      .isString()
+      .withMessage("Formato inválido.")
+      .isLength({ min: 3 })
+      .withMessage("O suporte precisa ter no mínimo três caracteres."),
+    body("year")
+      .optional()
+      .isString()
+      .withMessage("Formato inválido.")
+      .isLength({ min: 4 })
+      .withMessage("O ano precisa ter no mínimo quatro caracteres."),
+    body("dimension")
+      .optional()
+      .isString()
+      .withMessage("Formato inválido.")
+      .isLength({ min: 3 })
+      .withMessage("As dimensões precisam ter no mínimo três caracteres."),
     body("archived")
       .optional()
       .isBoolean()
@@ -121,6 +150,7 @@ const artWorkUpdateValidation = () => {
       .optional()
       .custom((value, { req }) => {
         try {
+          verifyReqFiles(req.files, "png, jpg ou tif");
           return fileUpdateValidation(
             value,
             req.files["image"],
@@ -135,6 +165,7 @@ const artWorkUpdateValidation = () => {
       .optional()
       .custom((value, { req }) => {
         try {
+          verifyReqFiles(req.files, "mp3 ou mp4");
           return fileUpdateValidation(
             value,
             req.files["audioDesc"],
@@ -149,6 +180,7 @@ const artWorkUpdateValidation = () => {
       .optional()
       .custom((value, { req }) => {
         try {
+          verifyReqFiles(req.files, "mp3 ou mp4");
           return fileUpdateValidation(
             value,
             req.files["audioGuia"],

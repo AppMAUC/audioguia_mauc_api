@@ -14,6 +14,7 @@ const {
 //Middlewares
 const { authGuard } = require("../middlewares/authGuard");
 const validate = require("../validations/handleValidation");
+const queryIdValidation = require("../middlewares/queryIdValidation");
 const {
   artWorkCreateValidation,
   artWorkUpdateValidation,
@@ -34,15 +35,16 @@ router.post(
   registerArtWork
 );
 
-router.delete("/:id", authGuard, validate, deleteArtWork);
+router.delete("/:id", authGuard, queryIdValidation, validate, deleteArtWork);
 
 router.get("/", getAllArtWorks);
 router.get("/search", searchArtWork);
-router.get("/:id", getArtWorkById);
+router.get("/:id", queryIdValidation, getArtWorkById);
 
 router.put(
   "/:id",
   authGuard,
+  queryIdValidation,
   genericUpload([
     { name: "image", maxCount: 1 },
     { name: "audioDesc", maxCount: 2 },
