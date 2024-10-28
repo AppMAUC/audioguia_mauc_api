@@ -19,6 +19,7 @@ const {
 } = require("../validations/eventValidations");
 const { authGuard } = require("../middlewares/authGuard");
 const { upload } = require("../middlewares/multer");
+const queryIdValidation = require("../middlewares/queryIdValidation");
 
 // Routes
 router.post(
@@ -30,15 +31,16 @@ router.post(
   registerEvent
 );
 
-router.delete("/:id", authGuard, validate, deleteEvent);
+router.delete("/:id", authGuard, queryIdValidation, validate, deleteEvent);
 
 router.get("/", getAllEvents);
 router.get("/search", searchEvent);
-router.get("/:id", getEventById);
+router.get("/:id", queryIdValidation, getEventById);
 
 router.put(
   "/:id",
   authGuard,
+  queryIdValidation,
   upload.single("image"),
   eventUpdateValidation(),
   validate,

@@ -59,11 +59,18 @@ const eventCreateValidation = () => {
  */
 const eventUpdateValidation = () => {
   return [
-    body("title").optional().isString().withMessage("O título é obrigatório."),
+    body("title")
+      .optional()
+      .isString()
+      .withMessage("O título é obrigatório.")
+      .isLength({ min: 3 })
+      .withMessage("O título deve ter pelo menos 3 caracteres."),
     body("description")
       .optional()
       .isString()
-      .withMessage("A descrição é obrigatória."),
+      .withMessage("A descrição é obrigatória.")
+      .isLength({ min: 10 })
+      .withMessage("A descrição deve ter pelo menos 10 caracteres."),
     body("date")
       .optional()
       .isDate()

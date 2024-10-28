@@ -46,7 +46,7 @@ const fileUpdateValidation = (value, arr, fileType, types) => {
     return true;
   }
 
-  if (!value && !arr) {
+  if (!value && (arr.length === 0 || !arr || !arr[0])) {
     // if the file does not exist, an error is returned
     throw Error(`Envie apenas arquivos ${types}.`);
   }
