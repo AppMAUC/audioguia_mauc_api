@@ -6,17 +6,17 @@
 Esta é uma API RESTful desenvolvida em Node.js com Express e MongoDB, projetada para gerenciar obras de arte, exposições e artistas com um foco em acessibilidade, incluindo descrições em áudio em diferentes idiomas. A API foi planejada para um ambiente modular e escalável, incluindo funcionalidades de autenticação, pesquisa, manipulação de uploads, e acesso seguro aos dados. O desenvolvimento dessa API faz parte do projeto Aplicativo MAUC: para uma arte mais acessível.
 
 ## 📋 Índice
-- [Recursos](#recursos)
-- [Tecnologias](#tecnologias)
-- [Configuração do Ambiente](#configuração-do-ambiente)
-- [Instalação](#instalação)
+- [Recursos](#-recursos)
+- [Tecnologias](#-tecnologias)
+- [Configuração do Ambiente](#-configuração-do-ambiente)
+- [Instalação](#-instalação)
 - [Estrutura de Pastas](#️-estrutura-de-pastas)
-- [Endpoints Principais](#endpoints-principais)
-- [Upload de Arquivos](#upload-de-arquivos)
-- [Paginação e Filtros](#paginação-e-filtros)
-- [Autenticação e Segurança](#autenticação-e-segurança)
-- [Testes](#testes)
-- [Contribuição](#contribuição)
+- [Endpoints Principais](#-endpoints-principais)
+- [Upload de Arquivos](#-upload-de-arquivos)
+- [Paginação e Filtros](#-paginação-e-filtros)
+- [Autenticação e Segurança](#-autenticação-e-segurança)
+- [Testes](#-testes)
+- [Contribuição](#-contribuição)
 
 ## 📚 Recursos
 
