@@ -18,7 +18,7 @@ const {
   timeLineCreateValidation,
   timeLineUpdateValidation,
 } = require("../validations/timeLineValidations");
-
+const queryIdValidation = require("../middlewares/queryIdValidation");
 // Routes
 router.post(
   "/",
@@ -28,15 +28,16 @@ router.post(
   registerTimeLine
 );
 
-router.delete("/:id", authGuard, validate, deleteTimeLine);
+router.delete("/:id", authGuard, queryIdValidation, validate, deleteTimeLine);
 
 router.get("/", getAllTimeLines);
 router.get("/search", searchTimeLine);
-router.get("/:id", getTimeLineById);
+router.get("/:id", queryIdValidation, getTimeLineById);
 
 router.put(
   "/:id",
   authGuard,
+  queryIdValidation,
   timeLineUpdateValidation(),
   validate,
   updateTimeLine

@@ -19,12 +19,22 @@ const { body } = require("express-validator");
  */
 const timeLineCreateValidation = () => {
   return [
-    body("title").isString().withMessage("O título é obrigatório."),
-    body("description").isString().withMessage("A descrição é obrigatória."),
+    body("title")
+      .isString()
+      .withMessage("O título é obrigatório.")
+      .isLength({ min: 3 })
+      .withMessage("O título deve ter no mínimo 3 caracteres."),
+    body("description")
+      .isString()
+      .withMessage("A descrição é obrigatória.")
+      .isLength({ min: 10 })
+      .withMessage("A descrição deve ter no mínimo 3 caracteres."),
     body("events")
       .optional()
       .isArray()
-      .withMessage("Os eventos são obrigatórios."),
+      .withMessage("Os eventos são obrigatórios.")
+      .isLength({ min: 1 })
+      .withMessage("Deve haver pelo menos um evento."),
   ];
 };
 
@@ -47,15 +57,24 @@ const timeLineCreateValidation = () => {
  */
 const timeLineUpdateValidation = () => {
   return [
-    body("title").optional().isString().withMessage("O título é obrigatório."),
+    body("title")
+      .optional()
+      .isString()
+      .withMessage("O título é obrigatório.")
+      .isLength({ min: 3 })
+      .withMessage("O título deve ter no mínimo 3 caracteres."),
     body("description")
       .optional()
       .isString()
-      .withMessage("A descrição é obrigatória."),
+      .withMessage("A descrição é obrigatória.")
+      .isLength({ min: 10 })
+      .withMessage("A descrição deve ter no mínimo 3 caracteres."),
     body("events")
       .optional()
       .isArray()
-      .withMessage("Os eventos são obrigatórios."),
+      .withMessage("Os eventos são obrigatórios.")
+      .isLength({ min: 1 })
+      .withMessage("Deve haver pelo menos um evento."),
   ];
 };
 

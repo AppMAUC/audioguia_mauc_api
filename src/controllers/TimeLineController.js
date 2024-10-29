@@ -76,7 +76,11 @@ const updateTimeLine = async (req, res, next) => {
       timeLine.events = events;
     }
 
-    await timeLine.save();
+    await timeLine.updateOne({
+      title: timeLine.title,
+      description: timeLine.description,
+      events: timeLine.events,
+    });
 
     res.status(202).json({
       _id: timeLine._id,
