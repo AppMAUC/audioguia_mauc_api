@@ -20,6 +20,7 @@ const {
   expositionUpdateValidation,
 } = require("../validations/expositionValidations");
 const { upload } = require("../middlewares/multer");
+const queryIdValidation = require("../middlewares/queryIdValidation");
 
 //Routes
 router.post(
@@ -30,15 +31,16 @@ router.post(
   validate,
   registerExposition
 );
-router.delete("/:id", authGuard, validate, deleteExposition);
+router.delete("/:id", authGuard, queryIdValidation, validate, deleteExposition);
 
 router.get("/", getAllExpostitions);
 router.get("/search", searchExpositions);
-router.get("/:id", getExpositionById);
+router.get("/:id", queryIdValidation, getExpositionById);
 
 router.put(
   "/:id",
   authGuard,
+  queryIdValidation,
   upload.single("image"),
   expositionUpdateValidation(),
   validate,

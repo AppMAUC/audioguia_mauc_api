@@ -93,7 +93,9 @@ const expositionUpdateValidation = () => {
     body("description")
       .optional()
       .isString()
-      .withMessage("A descrição é obrigatória."),
+      .withMessage("A descrição é obrigatória.")
+      .isLength({ min: 3 })
+      .withMessage("A descrição precisa ter no mínimo três caracteres."),
     body("artWorks")
       .optional()
       .isArray()
@@ -103,7 +105,9 @@ const expositionUpdateValidation = () => {
     body("place")
       .optional()
       .isString()
-      .withMessage("O local da exposição é obrigatório."),
+      .withMessage("O local da exposição é obrigatório.")
+      .isLength({ min: 3 })
+      .withMessage("O lugar precisa ter no mínimo três caracteres."),
     body("dateStarts")
       .optional()
       .isDate()
@@ -119,7 +123,9 @@ const expositionUpdateValidation = () => {
       .custom((value) => {
         const validAcess = [1, 2, "1", "2"];
         if (!validAcess.includes(value)) {
-          throw new Error("Escolha um tipo válido.");
+          throw new Error(
+            "Escolha um tipo válido. 1 para exposições de longa duração e 2 para exposições temporárias."
+          );
         }
         return true;
       }),
