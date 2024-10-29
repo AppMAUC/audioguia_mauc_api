@@ -3,13 +3,14 @@
 
 # 🎨 App Mauc API
 
-Esta é uma API RESTful desenvolvida em Node.js com Express e MongoDB, projetada para gerenciar obras de arte, exposições e artistas com um foco em acessibilidade, incluindo descrições em áudio em diferentes idiomas. A API foi planejada para um ambiente modular e escalável, incluindo funcionalidades de autenticação, pesquisa, manipulação de uploads, e acesso seguro aos dados. O desenvolvimento dessa API faz parte do projeot Aplicativo MAUC: para uma arte mais acessível.
+Esta é uma API RESTful desenvolvida em Node.js com Express e MongoDB, projetada para gerenciar obras de arte, exposições e artistas com um foco em acessibilidade, incluindo descrições em áudio em diferentes idiomas. A API foi planejada para um ambiente modular e escalável, incluindo funcionalidades de autenticação, pesquisa, manipulação de uploads, e acesso seguro aos dados. O desenvolvimento dessa API faz parte do projeto Aplicativo MAUC: para uma arte mais acessível.
 
 ## 📋 Índice
 - [Recursos](#recursos)
 - [Tecnologias](#tecnologias)
 - [Configuração do Ambiente](#configuração-do-ambiente)
 - [Instalação](#instalação)
+- [Estrutura de Pastas](#️-estrutura-de-pastas)
 - [Endpoints Principais](#endpoints-principais)
 - [Upload de Arquivos](#upload-de-arquivos)
 - [Paginação e Filtros](#paginação-e-filtros)
@@ -186,7 +187,7 @@ A estrutura de pastas do projeto segue uma organização modular para facilitar 
    - `DELETE /api/expositions/:id`: Exclui uma exposição.
 
 > **Nota:** Consulte a documentação no Postman para obter um detalhamento mais específico e exemplos de requisições.
-> [Documentação](URL_DA_DOCUMENTAÇÃO)
+> [Documentação](https://documenter.getpostman.com/view/32475493/2sAY4uDP4t)
 
 ## 🖼️ Upload de Arquivos
 
@@ -231,7 +232,7 @@ A API utiliza **JWT (JSON Web Token)** para autenticação. Implementamos:
 ## 🤝 Colaboradores
 
 ### Contribuidores Principais
-- [**Victor Emanuel**](github.com/victor280504) - Desenvolvedor Principal
+- [**Victor Emanuel**](https://github.com/victor280504) - Desenvolvedor Principal
 
 ## 🫂 Contribuição
 

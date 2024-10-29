@@ -85,7 +85,6 @@ const fileUpdateValidation = (value, arr, fileType, types) => {
  * };
  */
 const fileCreateValidation = (arr = [], fileType, types) => {
-  console.log("entrou na func: ", arr);
   if (arr.length === 0 || !arr || !arr[0]) {
     // if the file does not exist, an error is returned
     throw Error(`Envie apenas arquivos ${types}.`);

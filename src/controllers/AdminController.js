@@ -144,7 +144,6 @@ const deleteAdmin = async (req, res, next) => {
     const { id } = req.params;
 
     const admin = await Admin.findById(new mongoose.Types.ObjectId(id));
-    console.log(admin);
     if (!admin) {
       const error = new Error("Administrador não encontrado");
       error.statusCode = 404;
