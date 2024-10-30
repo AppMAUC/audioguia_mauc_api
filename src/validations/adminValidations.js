@@ -58,9 +58,7 @@ const adminCreateValidation = () => {
       return true;
     }),
     body("image").custom((value, { req }) => {
-      console.log(req)
       try {
-        console.log('reqfile: ', req.file)
         return fileCreateValidation([req.file], "image", "png, jpg ou tif");
       } catch (error) {
         throw error;
