@@ -40,7 +40,9 @@ const authGuard = async (req, res, next) => {
 
     const verified = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
-    req.admin = await Admin.findById(verified._id).select("-password");
+    req.admin = await Admin.findById(verified._id)
+      .select("-password")
+      .select("-refreshToken");
 
     next();
   } catch (error) {
