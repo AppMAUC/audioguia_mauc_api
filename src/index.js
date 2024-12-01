@@ -34,10 +34,11 @@ app.use(cookieParser());
 if (process.env.NODE_ENV === "production") {
   app.use(
     cors({
-      credentials: true,
       origin: process.env.CLIENT_URL,
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-      allowedHeaders: "*",
+      allowedHeaders: ["Content-Type", "Authorization"],
+      exposedHeaders: ["Content-Range", "X-Content-Range"],
+      credentials: true,
     })
   );
 } else {
