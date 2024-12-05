@@ -55,30 +55,34 @@ const artWorkCreateValidation = () => {
         throw error;
       }
     }),
-    body("audioDesc").custom((value, { req }) => {
-      try {
-        verifyReqFiles(req.files, "mp3 ou mp4");
-        return fileCreateValidation(
-          req.files["audioDesc"],
-          "audio",
-          "mp3 ou mp4"
-        );
-      } catch (error) {
-        throw error;
-      }
-    }),
-    body("audioGuia").custom((value, { req }) => {
-      try {
-        verifyReqFiles(req.files, "mp3 ou mp4");
-        return fileCreateValidation(
-          req.files["audioGuia"],
-          "audio",
-          "mp3 ou mp4"
-        );
-      } catch (error) {
-        throw error;
-      }
-    }),
+    body("audioDesc")
+      .optional()
+      .custom((value, { req }) => {
+        try {
+          verifyReqFiles(req.files, "mp3 ou mp4");
+          return fileCreateValidation(
+            req.files["audioDesc"],
+            "audio",
+            "mp3 ou mp4"
+          );
+        } catch (error) {
+          throw error;
+        }
+      }),
+    body("audioGuia")
+      .optional()
+      .custom((value, { req }) => {
+        try {
+          verifyReqFiles(req.files, "mp3 ou mp4");
+          return fileCreateValidation(
+            req.files["audioGuia"],
+            "audio",
+            "mp3 ou mp4"
+          );
+        } catch (error) {
+          throw error;
+        }
+      }),
   ];
 };
 
