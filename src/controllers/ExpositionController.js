@@ -33,7 +33,7 @@ const registerExposition = async (req, res, next) => {
       type: parseInt(type),
       image,
       description,
-      artWorks,
+      artWorks: artWorks || [],
       place,
       dateStarts,
       dateEnds,
