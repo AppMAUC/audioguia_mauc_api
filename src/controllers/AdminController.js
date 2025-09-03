@@ -183,6 +183,7 @@ const searchAdmins = async (req, res) => {
   })
     .sort([["date", -1]])
     .select("-password")
+    .select("-refreshToken")
     .exec();
 
   return res.status(200).json(admins);
@@ -201,9 +202,9 @@ const searchAdmins = async (req, res) => {
 const getAdminById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const admin = await Admin.findById(new mongoose.Types.ObjectId(id)).select(
-      "-password"
-    );
+    const admin = await Admin.findById(new mongoose.Types.ObjectId(id))
+      .select("-password")
+      .select("-refreshToken");
 
     // Check if admin exists
     if (!admin) {
@@ -246,7 +247,8 @@ const getAllAdmins = async (req, res) => {
  */
 const getCurrentAdmin = async (req, res) => {
   const admin = req.admin;
-  res.status(200).json(admin);
+  const token = req.headers["authorization"]?.split(" ")[1];
+  res.status(200).json({ _id: admin._id, token, data: admin });
 };
 
 /**
@@ -289,7 +291,7 @@ const login = async (req, res, next) => {
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: true,
-      sameSite: "Strict",
+      sameSite: "None",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 

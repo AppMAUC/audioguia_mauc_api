@@ -49,18 +49,20 @@ const artistCreateValidation = () => {
       .optional()
       .isArray()
       .withMessage("Formato de dado inválido."),
-    body("audioGuia").custom((value, { req }) => {
-      try {
-        verifyReqFiles(req.files, "mp3 ou mp4");
-        return fileCreateValidation(
-          req.files["audioGuia"],
-          "audio",
-          "mp3, mp4"
-        );
-      } catch (error) {
-        throw error;
-      }
-    }),
+    body("audioGuia")
+      .optional()
+      .custom((value, { req }) => {
+        try {
+          verifyReqFiles(req.files, "mp3 ou mp4");
+          return fileCreateValidation(
+            req.files["audioGuia"],
+            "audio",
+            "mp3, mp4"
+          );
+        } catch (error) {
+          throw error;
+        }
+      }),
   ];
 };
 

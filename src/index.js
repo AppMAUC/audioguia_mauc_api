@@ -32,13 +32,24 @@ app.use(cookieParser());
 
 // Solve Cors
 if (process.env.NODE_ENV === "production") {
-  app.use(cors({ credentials: true, origin: process.env.CLIENT_URL }));
+  app.use(
+    cors({
+      origin: process.env.CLIENT_URL,
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+      exposedHeaders: ["Content-Range", "X-Content-Range"],
+      credentials: true,
+    })
+  );
 } else {
   app.use(cors());
 }
 
 // Upload directory
-app.use("/uploads", express.static(path.join(__dirname, "..", "tmp", "uploads")));
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, "..", "tmp", "uploads"))
+);
 
 //routes
 app.use(router);
