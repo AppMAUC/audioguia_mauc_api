@@ -35,10 +35,9 @@ const expositionCreateValidation = () => {
       .withMessage("O título precisa ter no mínimo três caracteres."),
     body("description").isString().withMessage("A descrição é obrigatória."),
     body("artWorks")
+      .optional()
       .isArray()
-      .withMessage("Formato de dado inválido.")
-      .isLength({ min: 1 })
-      .withMessage("A exposição precisa ter mais de uma obra."),
+      .withMessage("Formato de dado inválido."),
     body("place").isString().withMessage("O local da exposição é obrigatório."),
     body("dateStarts").isDate().withMessage("Adicione uma data válida."),
     body("dateEnds").isDate().withMessage("Adicione uma data válida."),
