@@ -233,7 +233,8 @@ A API utiliza **JWT (JSON Web Token)** para autenticação. Implementamos:
 
 ### Contribuidores Principais
 - [**Victor Emanuel**](https://github.com/victor280504) - Desenvolvedor Principal
-
+- [**Mateus de Aquino**](https://github.com/mateusaquinomr) - Desenvolvedor Colaborador
+  
 ## 🫂 Contribuição
 
 Sinta-se à vontade para contribuir:
