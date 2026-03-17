@@ -33,6 +33,7 @@ const artistCreateValidation = () => {
     body("biography")
       .isString()
       .withMessage("A biografia do artista é obrigatória."),
+    body("biography_en").optional().isString().withMessage("Formato inválido."),
     body("image").custom((value, { req }) => {
       try {
         verifyReqFiles(req.files, "png, jpg ou tif");
@@ -103,6 +104,7 @@ const artistUpdateValidation = () => {
       .optional()
       .isString()
       .withMessage("A biografia do artista é obrigatória."),
+    body("biography_en").optional().isString().withMessage("Formato inválido."),
     body("image")
       .optional()
       .custom((value, { req }) => {

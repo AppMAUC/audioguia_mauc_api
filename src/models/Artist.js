@@ -37,6 +37,7 @@ const artistSchema = new Schema(
     },
     artWorks: [{ type: mongoose.Schema.Types.ObjectId, ref: "ArtWork" }],
     biography: String,
+    biography_en: String,
     audioGuia: [
       {
         lang: String,

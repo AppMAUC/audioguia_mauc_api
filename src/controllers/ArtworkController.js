@@ -47,7 +47,7 @@ const { getAllWithPaginate } = require("../utils/paginate");
  */
 const registerArtWork = async (req, res, next) => {
   try {
-    const { title, description, author, suport, year, dimension } = req.body;
+    const { title, description, author, suport, year, dimension, title_en, description_en, suport_en } = req.body;
 
     const { image: a, audioDesc: b, audioGuia: c } = req.files;
     const image = a ? getFileObject(a)[0] : null;
@@ -57,12 +57,15 @@ const registerArtWork = async (req, res, next) => {
 
     const newArtWork = await ArtWork.create({
       title,
+      title_en,
       image,
       description,
+      description_en,
       audioDesc,
       audioGuia,
       author,
       suport,
+      suport_en,
       year,
       dimension,
       archived,
@@ -106,7 +109,7 @@ const registerArtWork = async (req, res, next) => {
  */
 const updateArtWork = async (req, res, next) => {
   try {
-    const { title, description, author, suport, year, dimension, archived } =
+    const { title, title_en, description, description_en, author, suport, suport_en, year, dimension, archived } =
       req.body;
     const { id } = req.params;
     const artWork = await ArtWork.findById(new mongoose.Types.ObjectId(id));
@@ -126,9 +129,14 @@ const updateArtWork = async (req, res, next) => {
     if (title) {
       artWork.title = title;
     }
+
+    if (title_en) artWork.title_en = title_en;
+
     if (description) {
       artWork.description = description;
     }
+
+    if (description_en) artWork.description_en = description_en;
 
     if (audioDesc) {
       artWork.audioDesc = verifyAudios(audioDesc, artWork.audioDesc);
@@ -144,6 +152,9 @@ const updateArtWork = async (req, res, next) => {
     if (suport) {
       artWork.suport = suport;
     }
+
+    if (suport_en) artWork.suport_en = suport_en;
+
     if (year) {
       artWork.year = year;
     }
@@ -159,11 +170,14 @@ const updateArtWork = async (req, res, next) => {
 
     await artWork.updateOne({
       title: artWork.title,
+      title_en: artWork.title_en,
       description: artWork.description,
+      description_en: artWork.description_en,
       audioDesc: artWork.audioDesc,
       audioGuia: artWork.audioGuia,
       author: artWork.author,
       suport: artWork.suport,
+      suport_en: artWork.suport_en,
       dimension: artWork.dimension,
       image: artWork.image,
       archived: artWork.archived,

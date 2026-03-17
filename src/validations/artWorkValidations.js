@@ -36,9 +36,12 @@ const artWorkCreateValidation = () => {
       .withMessage("O título é obrigatório.")
       .isLength({ min: 3 })
       .withMessage("O título precisa ter no mínimo três caracteres."),
+    body("title_en").optional().isString().withMessage("Formato inválido."),
     body("description").isString().withMessage("A descrição é obrigatória."),
+    body("description_en").optional().isString().withMessage("Formato inválido."),
     body("author").isString().withMessage("O nome do autor é obrigatório."),
     body("suport").isString().withMessage("O suporte da obra é obrigatório."),
+    body("suport_en").optional().isString().withMessage("Formato inválido."),
     body("year").isString().withMessage("O ano da obra é obrigatório."),
     body("dimension")
       .isString()
@@ -116,12 +119,14 @@ const artWorkUpdateValidation = () => {
       .optional()
       .isLength({ min: 3 })
       .withMessage("O título precisa ter no mínimo três caracteres."),
+    body("title_en").optional().isString().withMessage("Formato inválido."),
     body("description")
       .optional()
       .isString()
       .withMessage("Formato inválido.")
       .isLength({ min: 10 })
       .withMessage("A descrição precisa ter no mínimo dez caracteres."),
+    body("description_en").optional().isString().withMessage("Formato inválido."),
     body("author")
       .optional()
       .isString()
