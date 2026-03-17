@@ -29,6 +29,7 @@ const { deleteEngine, getPathbyUrl } = require("../utils/deleteFiles");
 const expositionSchema = new Schema(
   {
     title: String,
+    title_en: String,
     type: {
       type: Number,
       enum: [1, 2], // 1: Expo de longa duração , 2: Expo temporária ( ou curta duração)
@@ -41,8 +42,10 @@ const expositionSchema = new Schema(
       url: String,
     },
     description: String,
+    description_en: String,
     artWorks: [{ type: mongoose.Schema.Types.ObjectId, ref: "ArtWork" }],
     place: String,
+    place_en: String,
     dateStarts: Date,
     dateEnds: Date,
     archived: Boolean,

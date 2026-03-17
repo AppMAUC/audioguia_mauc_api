@@ -13,6 +13,10 @@
 
 //initial config
 require("dotenv").config();
+console.log('🔥 TESTE DE VARIAVEIS:');
+console.log('FIREBASE_CLIENT_EMAIL:', process.env.FIREBASE_CLIENT_EMAIL);
+console.log('FIREBASE_PROJECT_ID:', process.env.FIREBASE_PROJECT_ID);
+console.log('FIREBASE_PRIVATE_KEY existe?', !!process.env.FIREBASE_PRIVATE_KEY);
 // DB connection
 require("./config/db.js");
 const express = require("express");
@@ -31,19 +35,25 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Solve Cors
-if (process.env.NODE_ENV === "production") {
-  app.use(
-    cors({
-      origin: process.env.CLIENT_URL,
-      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization"],
-      exposedHeaders: ["Content-Range", "X-Content-Range"],
-      credentials: true,
-    })
-  );
-} else {
-  app.use(cors());
-}
+const devOrigins = ["http://localhost:5173", "http://127.0.0.1:5173"];
+const prodOrigins = process.env.CLIENT_URLS
+  ? process.env.CLIENT_URLS.split(",").map(s => s.trim())
+  : [process.env.CLIENT_URL].filter(Boolean);
+
+const allowedOrigins = process.env.NODE_ENV === "production" ? prodOrigins : devOrigins;
+
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true); // curl/Postman
+    if (allowedOrigins.includes(origin)) return cb(null, true);
+    return cb(new Error("CORS bloqueado para esta origem"), false);
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "Accept", "X-Requested-With"],
+  exposedHeaders: ["Content-Range", "X-Content-Range"],
+}));
+
 
 // Upload directory
 app.use(

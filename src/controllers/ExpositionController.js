@@ -22,7 +22,7 @@ const { getFileObject } = require("../utils/multerFunctions");
  */
 const registerExposition = async (req, res, next) => {
   try {
-    const { title, description, type, artWorks, place, dateStarts, dateEnds } =
+    const { title, description, type, artWorks, place, dateStarts, dateEnds, title_en, description_en, place_en } =
       req.body;
     const image = req.file ? getFileObject([req.file])[0] : null;
     const archived = false;
@@ -30,11 +30,14 @@ const registerExposition = async (req, res, next) => {
     // Create exposition
     const newExposition = await Exposition.create({
       title,
+      title_en,
       type: parseInt(type),
       image,
       description,
+      description_en,
       artWorks: artWorks || [],
       place,
+      place_en,
       dateStarts,
       dateEnds,
       archived,
@@ -80,10 +83,13 @@ const updateExposition = async (req, res, next) => {
   try {
     const {
       title,
+      title_en,
       description,
+      description_en,
       artWorks,
       type,
       place,
+      place_en,
       dateStarts,
       dateEnds,
       archived,
@@ -104,15 +110,18 @@ const updateExposition = async (req, res, next) => {
     if (title) {
       exposition.title = title;
     }
+    if (title_en) exposition.title_en = title_en;
     if (description) {
       exposition.description = description;
     }
+    if (description_en) exposition.description_en = description_en;
     if (artWorks) {
       exposition.artWorks = artWorks;
     }
     if (place) {
       exposition.place = place;
     }
+    if (place_en) exposition.place_en = place_en;
     if (dateEnds) {
       exposition.dateEnds = dateEnds;
     }
@@ -131,9 +140,12 @@ const updateExposition = async (req, res, next) => {
 
     await exposition.updateOne({
       title: exposition.title,
+      title_en: exposition.title_en,
       description: exposition.description,
+      description_en: exposition.description_en,
       artWorks: exposition.artWorks,
       place: exposition.place,
+      place_en: exposition.place_en,
       dateEnds: exposition.dateEnds,
       dateStarts: exposition.dateStarts,
       type: exposition.type,
