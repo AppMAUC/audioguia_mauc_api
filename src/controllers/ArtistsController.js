@@ -22,7 +22,7 @@ const { getFileObject } = require("../utils/multerFunctions");
  */
 const registerArtist = async (req, res, next) => {
   try {
-    const { name, birthDate, biography, artWorks } = req.body;
+    const { name, birthDate, biography, biography_en, artWorks } = req.body;
     const { image: a, audioGuia: c } = req.files;
     const image = a ? getFileObject(a)[0] : null;
     const audioGuia = c ? getFileObject(c) : null;
@@ -30,6 +30,7 @@ const registerArtist = async (req, res, next) => {
     const newArtist = await Artist.create({
       name,
       biography,
+      biography_en,
       birthDate,
       image,
       audioGuia,
@@ -71,7 +72,7 @@ const registerArtist = async (req, res, next) => {
  */
 const updateArtist = async (req, res, next) => {
   try {
-    const { name, birthDate, biography, artWorks } = req.body;
+    const { name, birthDate, biography, biography_en, artWorks } = req.body;
     const { id } = req.params;
     const artist = await Artist.findById(new mongoose.Types.ObjectId(id));
 
@@ -97,6 +98,9 @@ const updateArtist = async (req, res, next) => {
     if (biography) {
       artist.biography = biography;
     }
+    if (biography_en) {
+      artist.biography_en = biography_en;
+    }
     if (audioGuia) {
       artist.audioGuia = verifyAudios(audioGuia, artist.audioGuia);
     }
@@ -108,6 +112,7 @@ const updateArtist = async (req, res, next) => {
       name: artist.name,
       birthDate: artist.birthDate,
       biography: artist.biography,
+      biography_en: artist.biography_en,
       audioGuia: artist.audioGuia,
       image: artist.image,
       artWorks: artist.artWorks,

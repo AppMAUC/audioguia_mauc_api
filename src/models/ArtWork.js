@@ -35,6 +35,7 @@ const { bucket } = require("../config/firebase");
 const artWorkSchema = new Schema(
   {
     title: String,
+    title_en: String,
     image: {
       name: String,
       size: Number,
@@ -42,6 +43,7 @@ const artWorkSchema = new Schema(
       url: String,
     },
     description: String,
+    description_en: String,
     audioDesc: [
       {
         lang: String,
@@ -62,6 +64,7 @@ const artWorkSchema = new Schema(
     ],
     author: String,
     suport: String,
+    suport_en: String,
     year: String,
     dimension: String,
     archived: Boolean,

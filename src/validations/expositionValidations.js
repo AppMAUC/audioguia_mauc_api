@@ -33,12 +33,15 @@ const expositionCreateValidation = () => {
       .withMessage("O título é obrigatório.")
       .isLength({ min: 3 })
       .withMessage("O título precisa ter no mínimo três caracteres."),
+    body("title_en").optional().isString().withMessage("Formato inválido."),
     body("description").isString().withMessage("A descrição é obrigatória."),
+    body("description_en").optional().isString().withMessage("Formato inválido."),
     body("artWorks")
       .optional()
       .isArray()
       .withMessage("Formato de dado inválido."),
     body("place").isString().withMessage("O local da exposição é obrigatório."),
+    body("place_en").optional().isString().withMessage("Formato inválido."),
     body("dateStarts").isDate().withMessage("Adicione uma data válida."),
     body("dateEnds").isDate().withMessage("Adicione uma data válida."),
     body("type").custom((value) => {
@@ -89,12 +92,14 @@ const expositionUpdateValidation = () => {
       .withMessage("O título é obrigatório.")
       .isLength({ min: 3 })
       .withMessage("O título precisa ter no mínimo três caracteres."),
+    body("title_en").optional().isString().withMessage("Formato inválido."),
     body("description")
       .optional()
       .isString()
       .withMessage("A descrição é obrigatória.")
       .isLength({ min: 3 })
       .withMessage("A descrição precisa ter no mínimo três caracteres."),
+    body("description_en").optional().isString().withMessage("Formato inválido."),
     body("artWorks")
       .optional()
       .isArray()
